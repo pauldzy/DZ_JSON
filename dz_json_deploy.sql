@@ -3909,6 +3909,10 @@ AS
          THEN
             RETURN '0' || str_output;
             
+         ELSIF SUBSTR(str_output,1,2) = '-.'
+         THEN
+            RETURN '-0' || SUBSTR(str_output,2);
+            
          ELSE
             RETURN str_output;
             
