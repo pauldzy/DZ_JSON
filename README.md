@@ -7,7 +7,7 @@ Note these packages were created in the Oracle 10g days to transform Oracle and 
 #### GeoJSON Geometry Conversion Examples:
 
 2D Point
-```
+```sql
 SELECT  
 dz_json_main.sdo2geojson(
    p_input  => MDSYS.SDO_GEOMETRY(2001,NULL,SDO_POINT_TYPE(-79,37,NULL),NULL,NULL) 
@@ -19,7 +19,7 @@ dual;
 ```
 
 2D Polygon
-```
+```sql
 SELECT
 dz_json_main.sdo2geojson(
    p_input  => MDSYS.SDO_GEOMETRY(
@@ -37,7 +37,7 @@ dual;
 ```
 
 3D Point
-```
+```sql
 SELECT  
 dz_json_main.sdo2geojson(
    p_input  => MDSYS.SDO_GEOMETRY(3001,NULL,SDO_POINT_TYPE(-79,37,200),NULL,NULL) 
@@ -52,7 +52,7 @@ dual;
 
 3D Point with properties and numeric precision pruning including SRS info
 
-```
+```sql
 SELECT  
 dz_json_feature(  
     p_geometry => MDSYS.SDO_GEOMETRY(
