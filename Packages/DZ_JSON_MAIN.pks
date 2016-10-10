@@ -7,7 +7,7 @@ AS
    header: DZ_JSON
      
    - Build ID: DZBUILDIDDZ
-   - TFS Change Set: DZCHANGESETDZ
+   - Change Set: DZCHANGESETDZ
    
    Utility for the creation of JSON and GeoJSON from Oracle data types and
    structures.  Support for the deserialization of JSON is not implemented.
