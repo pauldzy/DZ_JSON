@@ -39,7 +39,7 @@ AS
    RETURN VARCHAR2
    AS
    BEGIN
-      RETURN '{"TFS":' || C_TFS_CHANGESET || ','
+      RETURN '{"CHANGESET":' || C_CHANGESET || ','
       || '"JOBN":"' || C_JENKINS_JOBNM || '",'   
       || '"BUILD":' || C_JENKINS_BUILD || ','
       || '"BUILDID":"' || C_JENKINS_BLDID || '"}';
