@@ -2403,7 +2403,7 @@ AS
          );
          
          str_output := REGEXP_REPLACE(
-             REGEXP_REPLACE(str_output,CHR(13),'\r')
+             REGEXP_REPLACE(str_output,CHR(13),'')
             ,CHR(9)
             ,'\t'
          );
@@ -2468,10 +2468,6 @@ AS
          IF SUBSTR(str_output,1,1) = '.'
          THEN
             RETURN '0' || str_output;
-            
-         ELSIF SUBSTR(str_output,1,2) = '-.'
-         THEN
-            RETURN '-0' || SUBSTR(str_output,2);
             
          ELSE
             RETURN str_output;
@@ -2543,7 +2539,7 @@ AS
          );
          
          clb_output := REGEXP_REPLACE(
-             REGEXP_REPLACE(clb_output,CHR(13),'\r')
+             REGEXP_REPLACE(clb_output,CHR(13),'')
             ,CHR(9)
             ,'\t'
          );
@@ -2668,6 +2664,7 @@ AS
    ) RETURN CLOB
    AS
       clb_output CLOB;
+      str_pad    VARCHAR2(1 Char);
       
    BEGIN
       
@@ -2713,22 +2710,15 @@ AS
       -- Step 40
       -- Spin out the values
       --------------------------------------------------------------------------
+      str_pad := ' ';
       FOR i IN 1 .. p_input.COUNT
       LOOP
-         IF i < p_input.COUNT
-         THEN
-            clb_output := clb_output || dz_json_util.pretty(
-                json_format(p_input(i)) || ','
-               ,p_pretty_print + 1
-            );
+         clb_output := clb_output || dz_json_util.pretty(
+             str_pad || json_format(p_input(i))
+            ,p_pretty_print + 1
+         );
                        
-         ELSE
-            clb_output := clb_output || dz_json_util.pretty(
-                json_format(p_input(i))
-               ,p_pretty_print + 1
-            );
-                       
-         END IF;
+         str_pad := ',';
             
       END LOOP;  
          
@@ -2760,6 +2750,7 @@ AS
    ) RETURN CLOB
    AS
       clb_output CLOB;
+      str_pad    VARCHAR2(1 Char);
       
    BEGIN
    
@@ -2789,16 +2780,10 @@ AS
       --------------------------------------------------------------------------
       IF p_pretty_print IS NULL
       THEN
-         clb_output := clb_output || dz_json_util.pretty(
-             '['
-            ,NULL
-         );
+         clb_output := clb_output || dz_json_util.pretty('[',NULL);
                     
       ELSE
-         clb_output := clb_output || dz_json_util.pretty(
-             '['
-            ,-1
-         );
+         clb_output := clb_output || dz_json_util.pretty('[',-1);
                     
       END IF;
    
@@ -2806,22 +2791,15 @@ AS
       -- Step 40
       -- Spin out the values
       --------------------------------------------------------------------------
+      str_pad := ' ';
       FOR i IN 1 .. p_input.COUNT
       LOOP
-         IF i < p_input.COUNT
-         THEN
-            clb_output := clb_output || dz_json_util.pretty(
-                json_format(p_input(i)) || ','
-               ,p_pretty_print + 1
-            );
-                        
-         ELSE
-            clb_output := clb_output || dz_json_util.pretty(
-                json_format(p_input(i))
-               ,p_pretty_print + 1
-            );
-                       
-         END IF;
+         clb_output := clb_output || dz_json_util.pretty(
+             str_pad || json_format(p_input(i))
+            ,p_pretty_print + 1
+         );
+         
+         str_pad := ',';
             
       END LOOP;  
          

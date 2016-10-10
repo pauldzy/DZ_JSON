@@ -506,6 +506,59 @@ AS
       END IF;
       
    END indent;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   FUNCTION pretty_str(
+       p_input      IN VARCHAR2
+      ,p_level      IN NUMBER
+      ,p_amount     IN VARCHAR2 DEFAULT '   '
+      ,p_linefeed   IN VARCHAR2 DEFAULT CHR(10)
+   ) RETURN VARCHAR2
+   AS
+      str_amount   VARCHAR2(4000 Char) := p_amount;
+      str_linefeed VARCHAR2(2 Char)    := p_linefeed;
+      
+   BEGIN
+
+      --------------------------------------------------------------------------
+      -- Step 10
+      -- Process Incoming Parameters
+      --------------------------------------------------------------------------
+      IF p_amount IS NULL
+      THEN
+         str_amount := '   ';
+         
+      END IF;
+
+      --------------------------------------------------------------------------
+      -- Step 20
+      -- If input is NULL, then do nothing
+      --------------------------------------------------------------------------
+      IF p_input IS NULL
+      THEN
+         RETURN NULL;
+         
+      END IF;
+
+      --------------------------------------------------------------------------
+      -- Step 30
+      -- Return indented and line fed results
+      --------------------------------------------------------------------------
+      IF p_level IS NULL
+      THEN
+         RETURN p_input;
+         
+      ELSIF p_level = -1
+      THEN
+         RETURN p_input || str_linefeed;
+         
+      ELSE
+         RETURN indent(p_level,str_amount) || p_input || str_linefeed;
+         
+      END IF;
+
+   END pretty_str;
 
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
