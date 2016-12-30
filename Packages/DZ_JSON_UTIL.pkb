@@ -951,6 +951,245 @@ AS
       RETURN 'TRUE';
 
    END a_in_b;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   FUNCTION sort_string(
+       p_input_array      IN  MDSYS.SDO_STRING2_ARRAY
+      ,p_direction        IN  VARCHAR2 DEFAULT 'ASC'
+      ,p_unique           IN  VARCHAR2 DEFAULT 'FALSE'
+   ) RETURN MDSYS.SDO_STRING2_ARRAY
+   AS
+      idx           PLS_INTEGER;
+      tmp           VARCHAR2(4000 Char);
+      ary_output    MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY();
+      ary_output_u  MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY();
+      str_direction VARCHAR2(4 Char);
+      str_unique    VARCHAR2(5 Char);
+      
+   BEGIN
+   
+      IF p_direction IS NULL
+      THEN
+         str_direction := 'ASC';
+         
+      ELSIF UPPER(p_direction) IN ('ASC','DESC')
+      THEN
+         str_direction := UPPER(p_direction);
+         
+      ELSE
+         RAISE_APPLICATION_ERROR(-20001,'p_direction must be ASC or DESC');
+         
+      END IF;
+
+      IF p_unique IS NULL
+      THEN
+         str_unique := 'FALSE';
+         
+      ELSIF UPPER(p_unique) IN ('TRUE','FALSE')
+      THEN
+         str_unique := UPPER(p_unique);
+         
+      ELSE
+         RAISE_APPLICATION_ERROR(-20001,'p_unique must be TRUE or FALSE');
+         
+      END IF;
+
+      IF p_input_array IS NULL
+      THEN
+         RETURN ary_output;
+         
+      ELSIF p_input_array.COUNT = 1
+      THEN
+         RETURN p_input_array;
+         
+      END IF;
+
+      -- yes this is a shameful bubble sort
+      ary_output := p_input_array;
+      idx := p_input_array.COUNT - 1;
+      WHILE ( idx > 0 )
+      LOOP
+         FOR j IN 1 .. idx
+         LOOP
+            IF str_direction = 'DESC'
+            THEN
+               IF ary_output(j) < ary_output(j+1)
+               THEN
+                  tmp             := ary_output(j);
+                  ary_output(j)   := ary_output(j+1);
+                  ary_output(j+1) := tmp;
+                  
+               END IF;
+               
+            ELSE
+               IF ary_output(j) > ary_output(j+1)
+               THEN
+                  tmp             := ary_output(j);
+                  ary_output(j)   := ary_output(j+1);
+                  ary_output(j+1) := tmp;
+                  
+               END IF;
+               
+            END IF;
+            
+         END LOOP;
+         
+         idx := idx - 1;
+         
+      END LOOP;
+
+      IF str_unique = 'TRUE'
+      THEN
+         tmp := NULL;
+         idx := 1;
+         
+         FOR i IN 1 .. ary_output.COUNT
+         LOOP
+            IF tmp IS NULL
+            OR tmp != ary_output(i)
+            THEN
+               ary_output_u.EXTEND;
+               ary_output_u(idx) := ary_output(i);
+               idx := idx + 1;
+               
+            END IF;
+            
+            tmp := ary_output(i);
+            
+         END LOOP;
+         
+         RETURN ary_output_u;
+         
+      ELSE
+         RETURN ary_output;
+         
+      END IF;
+
+   END sort_string;
+
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   FUNCTION sort_number(
+       p_input_array      IN  MDSYS.SDO_NUMBER_ARRAY
+      ,p_direction        IN  VARCHAR2 DEFAULT 'ASC'
+      ,p_unique           IN  VARCHAR2 DEFAULT 'FALSE'
+   ) RETURN MDSYS.SDO_NUMBER_ARRAY
+   AS
+      idx           PLS_INTEGER;
+      tmp           NUMBER;
+      ary_output    MDSYS.SDO_NUMBER_ARRAY := MDSYS.SDO_NUMBER_ARRAY();
+      ary_output_u  MDSYS.SDO_NUMBER_ARRAY := MDSYS.SDO_NUMBER_ARRAY();
+      str_direction VARCHAR2(4 Char);
+      str_unique    VARCHAR2(5 Char);
+      
+   BEGIN
+   
+      IF p_direction IS NULL
+      THEN
+         str_direction := 'ASC';
+         
+      ELSIF UPPER(p_direction) IN ('ASC','DESC')
+      THEN
+         str_direction := UPPER(p_direction);
+         
+      ELSE
+         RAISE_APPLICATION_ERROR(
+             -20001
+            ,'p_direction must be ASC or DESC'
+         );
+         
+      END IF;
+
+      IF p_unique IS NULL
+      THEN
+         str_unique := 'FALSE';
+         
+      ELSIF UPPER(p_unique) IN ('TRUE','FALSE')
+      THEN
+         str_unique := UPPER(p_unique);
+         
+      ELSE
+         RAISE_APPLICATION_ERROR(
+             -20001
+            ,'p_unique must be TRUE or FALSE'
+         );
+         
+      END IF;
+
+      IF p_input_array IS NULL
+      THEN
+         RETURN ary_output;
+         
+      ELSIF p_input_array.COUNT = 1
+      THEN
+         RETURN p_input_array;
+         
+      END IF;
+      
+      -- yes this is a shameful bubble sort
+      ary_output := p_input_array;
+      idx := p_input_array.COUNT - 1;
+      
+      WHILE ( idx > 0 )
+      LOOP
+         FOR j IN 1 .. idx
+         LOOP
+            IF str_direction = 'DESC'
+            THEN
+               IF ary_output(j) < ary_output(j+1)
+               THEN
+                  tmp             := ary_output(j);
+                  ary_output(j)   := ary_output(j+1);
+                  ary_output(j+1) := tmp;
+                  
+               END IF;
+               
+            ELSE
+               IF ary_output(j) > ary_output(j+1)
+               THEN
+                  tmp             := ary_output(j);
+                  ary_output(j)   := ary_output(j+1);
+                  ary_output(j+1) := tmp;
+                  
+               END IF;
+               
+            END IF;
+            
+         END LOOP;
+         
+         idx := idx - 1;
+         
+      END LOOP;
+
+      IF str_unique = 'TRUE'
+      THEN
+         tmp := NULL;
+         idx := 1;
+         
+         FOR i IN 1 .. ary_output.COUNT
+         LOOP
+            IF tmp IS NULL
+            OR tmp != ary_output(i)
+            THEN
+               ary_output_u.EXTEND;
+               ary_output_u(idx) := ary_output(i);
+               idx := idx + 1;
+               
+            END IF;
+            
+            tmp := ary_output(i);
+            
+         END LOOP;
+         
+         RETURN ary_output_u;
+         
+      ELSE
+         RETURN ary_output;
+         
+      END IF;
+
+   END sort_number;
 
 END dz_json_util;
 /

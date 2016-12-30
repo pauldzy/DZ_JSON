@@ -1,130 +1,153 @@
-CREATE OR REPLACE TYPE BODY dz_json_properties 
+CREATE OR REPLACE TYPE BODY dz_json_element1
 AS
 
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
-   CONSTRUCTOR FUNCTION dz_json_properties
+   CONSTRUCTOR FUNCTION dz_json_element1
    RETURN SELF AS RESULT
    AS
    BEGIN
       RETURN;
       
-   END dz_json_properties;
+   END dz_json_element1;
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
-   CONSTRUCTOR FUNCTION dz_json_properties(
+   CONSTRUCTOR FUNCTION dz_json_element1(
        p_name               IN  VARCHAR2
-      ,p_properties_string  IN  VARCHAR2
+      ,p_element_string     IN  VARCHAR2
    ) RETURN SELF AS RESULT
    AS
    BEGIN
-      IF p_properties_string IS NULL
+      IF p_element_string IS NULL
       THEN
-         self.properties_null := 1;
+         self.element_null := 1;
          
       ELSE
-         self.properties_string := p_properties_string;
+         self.element_string := p_element_string;
          
       END IF;
       
-      self.properties_name := p_name;
+      self.element_name := p_name;
       
       RETURN;
       
-   END dz_json_properties;
+   END dz_json_element1;
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
-   CONSTRUCTOR FUNCTION dz_json_properties(
+   CONSTRUCTOR FUNCTION dz_json_element1(
        p_name               IN  VARCHAR2
-      ,p_properties_number  IN  NUMBER
+      ,p_element_number     IN  NUMBER
    ) RETURN SELF AS RESULT
    AS
    BEGIN
-      IF p_properties_number IS NULL
+      IF p_element_number IS NULL
       THEN
-         self.properties_null := 1;
+         self.element_null := 1;
          
       ELSE
-         self.properties_number := p_properties_number;
+         self.element_number := p_element_number;
          
       END IF;
       
-      self.properties_name := p_name;
+      self.element_name := p_name;
       
       RETURN;
       
-   END dz_json_properties;
+   END dz_json_element1;
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
-   CONSTRUCTOR FUNCTION dz_json_properties(
+   CONSTRUCTOR FUNCTION dz_json_element1(
        p_name               IN  VARCHAR2
-      ,p_properties_date    IN  DATE
+      ,p_element_date       IN  DATE
    ) RETURN SELF AS RESULT
    AS
    BEGIN
-      IF p_properties_date IS NULL
+      IF p_element_date IS NULL
       THEN
-         self.properties_null := 1;
+         self.element_null := 1;
          
       ELSE
-         self.properties_date := p_properties_date;
+         self.element_date := p_element_date;
          
       END IF;
       
-      self.properties_name := p_name;
+      self.element_name := p_name;
       
       RETURN;
       
-   END dz_json_properties;
+   END dz_json_element1;
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
-   CONSTRUCTOR FUNCTION dz_json_properties(
+   CONSTRUCTOR FUNCTION dz_json_element1(
        p_name               IN  VARCHAR2
-      ,p_properties_complex IN  CLOB
+      ,p_element_complex    IN  CLOB
    ) RETURN SELF AS RESULT
    AS
    BEGIN
-      IF p_properties_complex IS NULL
+      IF p_element_complex IS NULL
       THEN
-         self.properties_null := 1;
+         self.element_null := 1;
          
       ELSE
-         self.properties_complex := p_properties_complex;
+         self.element_complex := p_element_complex;
          
       END IF;
       
-      self.properties_name := p_name;
+      self.element_name := p_name;
       
       RETURN;
       
-   END dz_json_properties;
+   END dz_json_element1;
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
-   CONSTRUCTOR FUNCTION dz_json_properties(
-       p_name                IN  VARCHAR2
-      ,p_properties_element  IN  dz_json_element1_obj
+   CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name               IN  VARCHAR2
+      ,p_element_obj        IN  dz_json_element2_obj
    ) RETURN SELF AS RESULT
    AS
    BEGIN
-      IF p_properties_element IS NULL
+      IF p_element_obj IS NULL
       THEN
-         self.properties_null := 1;
+         self.element_null := 1;
          
       ELSE
-         self.properties_element := p_properties_element;
+         self.element_obj := p_element_obj;
          
       END IF;
       
-      self.properties_name := p_name;
+      self.element_name := p_name;
       
       RETURN;
       
-   END dz_json_properties;
+   END dz_json_element1;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name               IN  VARCHAR2
+      ,p_element_vry        IN  dz_json_element2_vry
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_vry := p_element_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element1;
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
@@ -132,17 +155,21 @@ AS
    RETURN VARCHAR2
    AS
    BEGIN
-      IF self.properties_null = 1
+      IF self.element_null = 1
       THEN
          RETURN 'TRUE';
          
       END IF;
       
-      IF  self.properties_string  IS NULL
-      AND self.properties_number  IS NULL
-      AND self.properties_date    IS NULL
-      AND self.properties_complex IS NULL
-      AND self.properties_element IS NULL
+      IF  self.element_string  IS NULL
+      AND self.element_number  IS NULL
+      AND self.element_date    IS NULL
+      AND self.element_complex IS NULL
+      AND self.element_obj     IS NULL
+      AND ( 
+         self.element_vry IS NULL
+         OR self.element_vry.COUNT = 0 
+      )
       THEN
          RETURN 'TRUE';
          
@@ -158,7 +185,10 @@ AS
       p_pretty_print     IN  NUMBER   DEFAULT NULL
    ) RETURN CLOB
    AS
+      clb_vry          CLOB;
       num_pretty_print NUMBER := p_pretty_print;
+      str_pad          VARCHAR2(1 Char);
+      str_init         VARCHAR2(1 Char);
       
    BEGIN
       
@@ -181,10 +211,10 @@ AS
       -- Step 30
       -- String output
       --------------------------------------------------------------------------
-      IF self.properties_string IS NOT NULL
+      IF self.element_string IS NOT NULL
       THEN
          RETURN dz_json_main.json_format(
-             p_input        => self.properties_string
+             p_input        => self.element_string
          );
          
       END IF;
@@ -193,10 +223,10 @@ AS
       -- Step 40
       -- Number output
       --------------------------------------------------------------------------
-      IF self.properties_number IS NOT NULL
+      IF self.element_number IS NOT NULL
       THEN
          RETURN dz_json_main.json_format(
-             p_input        => self.properties_number
+             p_input        => self.element_number
          );
          
       END IF;
@@ -205,10 +235,10 @@ AS
       -- Step 50
       -- Date output
       --------------------------------------------------------------------------
-      IF self.properties_date IS NOT NULL
+      IF self.element_date IS NOT NULL
       THEN
          RETURN dz_json_main.json_format(
-             p_input        => self.properties_date
+             p_input        => self.element_date
          );
          
       END IF;
@@ -217,9 +247,9 @@ AS
       -- Step 60
       -- Complex output
       --------------------------------------------------------------------------
-      IF self.properties_complex IS NOT NULL
+      IF self.element_complex IS NOT NULL
       THEN
-         RETURN self.properties_complex;
+         RETURN self.element_complex;
          
       END IF;
       
@@ -227,9 +257,9 @@ AS
       -- Step 70
       -- Subobject output
       --------------------------------------------------------------------------
-      IF self.properties_element IS NOT NULL
+      IF self.element_obj IS NOT NULL
       THEN
-         RETURN self.properties_element.toJSON(
+         RETURN self.element_obj.toJSON(
             p_pretty_print => num_pretty_print
          );
          
@@ -237,10 +267,49 @@ AS
       
       --------------------------------------------------------------------------
       -- Step 80
+      -- Subobject output
+      --------------------------------------------------------------------------
+      IF self.element_vry IS NOT NULL
+      THEN
+         IF p_pretty_print IS NULL
+         THEN
+            clb_vry := dz_json_util.pretty('[',NULL);
+            str_pad := '';
+            
+         ELSE
+            clb_vry := dz_json_util.pretty('[',-1);
+            str_pad := ' ';
+            
+         END IF;
+         str_init := str_pad;
+         
+         FOR i IN 1 .. self.element_vry.COUNT
+         LOOP
+            clb_vry := clb_vry || dz_json_util.pretty(
+                str_init || self.element_vry(i).toJSON(
+                  p_pretty_print => p_pretty_print + 1
+                )
+               ,p_pretty_print + 1
+            );
+            str_init := ',';
+           
+         END LOOP;
+         
+         clb_vry := clb_vry || dz_json_util.pretty(
+             ']'
+            ,p_pretty_print,NULL,NULL
+         );
+      
+         RETURN clb_vry;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 90
       -- Element must be null
       --------------------------------------------------------------------------
       RETURN 'null';
-   
+           
    END toJSON;
    
 END;

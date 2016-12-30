@@ -43,8 +43,7 @@ AS
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    MEMBER FUNCTION bbox(
-       p_output_srid  IN  NUMBER DEFAULT NULL
-      ,p_prune_number IN  NUMBER DEFAULT NULL
+      p_prune_number IN  NUMBER DEFAULT NULL
    ) RETURN VARCHAR2
    AS
       sdo_aggr_geom MDSYS.SDO_GEOMETRY;
@@ -59,19 +58,17 @@ AS
       ELSE
          FOR i IN 1 .. self.features.COUNT
          LOOP
-            IF  sdo_aggr_geom IS NULL
+            IF sdo_aggr_geom IS NULL
             THEN
                sdo_aggr_geom := MDSYS.SDO_GEOM.SDO_MBR(
-                  self.features(i).transform(
-                     p_output_srid => p_output_srid
+                  dz_json_util.downsize_2d(
+                     self.features(i).geometry
                   )
                );
                
             ELSE
                sdo_temp := dz_json_util.downsize_2d(
-                  self.features(i).transform(
-                      p_output_srid => p_output_srid
-                  )
+                  self.features(i).geometry
                );
                
                sdo_aggr_geom := MDSYS.SDO_GEOM.SDO_MBR(
@@ -87,7 +84,6 @@ AS
          
          RETURN dz_json_main.sdo2bbox(
              p_input => sdo_aggr_geom
-            ,p_output_srid  => p_output_srid
             ,p_prune_number => p_prune_number
          );
       
@@ -100,21 +96,17 @@ AS
    MEMBER FUNCTION toJSON(
        p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
-      ,p_output_srid      IN  NUMBER   DEFAULT NULL
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
-      ,p_add_crs          IN  VARCHAR2 DEFAULT 'TRUE'
-      ,p_add_bbox         IN  VARCHAR2 DEFAULT 'TRUE'
+      ,p_add_bbox         IN  VARCHAR2 DEFAULT 'FALSE'
    ) RETURN CLOB
    AS
       clb_output   CLOB;
       str_2d_flag  VARCHAR2(4000 Char) := UPPER(p_2d_flag);
-      str_add_crs  VARCHAR2(4000 Char) := UPPER(p_add_crs);
       str_add_bbox VARCHAR2(4000 Char) := UPPER(p_add_bbox);
+      str_init     VARCHAR2(1 Char);
+      str_init2    VARCHAR2(1 Char);
       str_pad      VARCHAR2(1 Char);
       clb_features CLOB;
-      boo_first    BOOLEAN;
-      clb_crs      CLOB;
-      sdo_temp     MDSYS.SDO_GEOMETRY;
       
    BEGIN
       
@@ -132,19 +124,9 @@ AS
          
       END IF;
       
-      IF str_add_crs IS NULL
-      THEN
-         str_add_crs := 'TRUE';
-         
-      ELSIF str_add_crs NOT IN ('FALSE','TRUE')
-      THEN
-         RAISE_APPLICATION_ERROR(-20001,'boolean error');
-         
-      END IF;
-      
       IF str_add_bbox IS NULL
       THEN
-         str_add_bbox := 'TRUE';
+         str_add_bbox := 'FALSE';
          
       ELSIF str_add_bbox NOT IN ('FALSE','TRUE')
       THEN
@@ -168,55 +150,22 @@ AS
          str_pad      := ' ';
          
       END IF;
+      str_init := str_pad;
       
       --------------------------------------------------------------------------
       -- Step 30
       -- Build the object basics
       --------------------------------------------------------------------------
       clb_output := clb_output || dz_json_util.pretty(
-          str_pad || dz_json_main.value2json(
+          str_init || dz_json_main.value2json(
               'type'
              ,'FeatureCollection'
              ,p_pretty_print + 1
           )
          ,p_pretty_print + 1
       );
-      
-      --------------------------------------------------------------------------
-      -- Step 40
-      -- Add crs on demand
-      --------------------------------------------------------------------------
-      IF str_add_crs = 'TRUE'
-      THEN
-         IF self.features IS NULL
-         OR self.features.COUNT = 0
-         OR self.features(1).geometry IS NULL
-         THEN
-            clb_crs := 'null';
-            
-         ELSE
-            sdo_temp := self.features(1).transform(
-               p_output_srid => p_output_srid
-            );
-         
-            clb_crs := dz_json_main.srid2geojson_crs(
-                p_input        => sdo_temp.SDO_SRID
-               ,p_pretty_print => p_pretty_print + 1
-            );
-         
-         END IF;
-         
-         clb_output := clb_output || dz_json_util.pretty(
-             ',' || dz_json_main.formatted2json(
-                 'crs'
-                ,clb_crs
-                ,p_pretty_print + 1
-             )
-            ,p_pretty_print + 1
-         );
-         
-      END IF;
-      
+      str_init := ',';
+
       --------------------------------------------------------------------------
       -- Step 40
       -- Add bbox on demand
@@ -224,13 +173,12 @@ AS
       IF str_add_bbox = 'TRUE'
       THEN
          clb_output := clb_output || dz_json_util.pretty(
-             ',' || dz_json_main.formatted2json(
-                 'bbox'
-                ,self.bbox(
-                     p_output_srid  => p_output_srid
-                    ,p_prune_number => p_prune_number
-                 )
-                ,p_pretty_print + 1
+             str_init || dz_json_main.formatted2json(
+                'bbox'
+               ,self.bbox(
+                  p_prune_number => p_prune_number
+                )
+               ,p_pretty_print + 1
              )
             ,p_pretty_print + 1
          );
@@ -244,42 +192,26 @@ AS
       IF self.features IS NULL
       OR self.features.COUNT = 0
       THEN
-         clb_features := 'null';
+         clb_output := clb_output || dz_json_util.pretty(
+             str_init || '"features":' || str_pad || 'null'
+            ,p_pretty_print + 1
+         );
       
       ELSE
-         boo_first := TRUE;
+         str_init2 := str_pad;
          FOR i IN 1 .. self.features.COUNT
          LOOP
-            IF boo_first
-            THEN
-               clb_features := clb_features || dz_json_util.pretty(
-                   str_pad || self.features(i).toJSON(
-                       p_2d_flag      => p_2d_flag
-                      ,p_pretty_print => p_pretty_print + 2
-                      ,p_output_srid  => p_output_srid
-                      ,p_prune_number => p_prune_number
-                      ,p_add_crs      => 'FALSE'
-                      ,p_add_bbox     => 'FALSE'
-                   )
-                  ,p_pretty_print + 2
-               );
-               boo_first := FALSE;
-               
-            ELSE
-               clb_features := clb_features || dz_json_util.pretty(
-                   ',' || self.features(i).toJSON(
-                       p_2d_flag      => p_2d_flag
-                      ,p_pretty_print => p_pretty_print + 2
-                      ,p_output_srid  => p_output_srid
-                      ,p_prune_number => p_prune_number
-                      ,p_add_crs      => 'FALSE'
-                      ,p_add_bbox     => 'FALSE'
-                   )
-                  ,p_pretty_print + 2
-               );
-               
-            END IF;
-         
+            clb_features := clb_features || dz_json_util.pretty(
+                str_init2 || self.features(i).toJSON(
+                    p_2d_flag      => p_2d_flag
+                   ,p_pretty_print => p_pretty_print + 2
+                   ,p_prune_number => p_prune_number
+                   ,p_add_bbox     => 'FALSE'
+                )
+               ,p_pretty_print + 2
+            );
+            str_init2 := ',';
+           
          END LOOP;
          
          clb_features := clb_features || dz_json_util.pretty(
@@ -290,10 +222,10 @@ AS
       END IF;
       
       clb_output := clb_output || dz_json_util.pretty(
-          ',' || dz_json_main.formatted2json(
-              'features'
-             ,clb_features
-             ,p_pretty_print + 1
+          str_init || dz_json_main.formatted2json(
+             'features'
+            ,clb_features
+            ,p_pretty_print + 1
           )
          ,p_pretty_print + 1
       );

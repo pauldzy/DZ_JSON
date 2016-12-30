@@ -136,6 +136,22 @@ AS
       ,p_input_b          IN  MDSYS.SDO_STRING2_ARRAY
    ) RETURN VARCHAR2;
    
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   FUNCTION sort_string(
+       p_input_array      IN  MDSYS.SDO_STRING2_ARRAY
+      ,p_direction        IN  VARCHAR2 DEFAULT 'ASC'
+      ,p_unique           IN  VARCHAR2 DEFAULT 'FALSE'
+   ) RETURN MDSYS.SDO_STRING2_ARRAY;
+
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   FUNCTION sort_number(
+       p_input_array      IN  MDSYS.SDO_NUMBER_ARRAY
+      ,p_direction        IN  VARCHAR2 DEFAULT 'ASC'
+      ,p_unique           IN  VARCHAR2 DEFAULT 'FALSE'
+   ) RETURN MDSYS.SDO_NUMBER_ARRAY;
+   
 END dz_json_util;
 /
 

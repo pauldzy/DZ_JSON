@@ -60,7 +60,6 @@ AS
       p_input - SDO_GEOMETRY
       p_pretty_print - Optional JSON formatter.
       p_2d_flag - Optional TRUE/FALSE flag to remove 3rd and 4th dimensions.
-      p_output_srid - Optional SRID to transform geometry before conversion.
       p_prune_number - Optional length to truncate precision of ordinates.
 
    Returns:
@@ -71,19 +70,13 @@ AS
    
    -  Leave pretty print value NULL to output compact JSON.  Use zero for 
       pretty print formatting.  Larger values will continually indent the JSON 
-      three spaces to the right.
-      
-   -  The GeoJSON geometry object does not itself carry coordinate system 
-      information outside of a feature or feature collection object.  Use
-      the GeoJSON default of WGS84 (8307 or 4326) for output without further 
-      documentation.  
+      three spaces to the right. 
 
    */
    FUNCTION sdo2geojson(
        p_input            IN  MDSYS.SDO_GEOMETRY
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
       ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
-      ,p_output_srid      IN  NUMBER   DEFAULT NULL
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
    ) RETURN CLOB;
    
@@ -98,7 +91,6 @@ AS
    Parameters:
 
       p_input - SDO_GEOMETRY
-      p_output_srid - Optional SRID to transform geometry before conversion.
       p_prune_number - Optional length to truncate precision of ordinates.
 
    Returns:
@@ -108,30 +100,7 @@ AS
    */
    FUNCTION sdo2bbox(
        p_input            IN  MDSYS.SDO_GEOMETRY
-      ,p_output_srid      IN  NUMBER   DEFAULT NULL
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
-   ) RETURN CLOB;
-   
-   -----------------------------------------------------------------------------
-   -----------------------------------------------------------------------------
-   /*
-   Function: dz_json_main.srid2geojson_crs
-
-   Function to convert Oracle Spatial srid into GeoJSON CRS object.
-
-   Parameters:
-
-      p_input - Oracle Spatial srid.
-      p_pretty_print - Optional JSON formatter.
-
-   Returns:
-
-      CLOB of JSON CRS object 
-
-   */
-   FUNCTION srid2geojson_crs(
-       p_input            IN  NUMBER
-      ,p_pretty_print     IN  NUMBER   DEFAULT NULL
    ) RETURN CLOB;
    
    -----------------------------------------------------------------------------
@@ -146,9 +115,7 @@ AS
       p_input - SDO_GEOMETRY
       p_pretty_print - Optional JSON formatter.
       p_2d_flag - Optional TRUE/FALSE flag to remove 3rd and 4th dimensions.
-      p_output_srid - Optional SRID to transform geometry before conversion.
       p_prune_number - Optional length to truncate precision of ordinates.
-      p_add_crs - Optional TRUE/FALSE flag to add crs element.
       p_add_bbox - Optional TRUE/FALSE flag to add bbox element.
       p_properties - Optional properties to add to the output.
 
@@ -169,9 +136,7 @@ AS
        p_input            IN  MDSYS.SDO_GEOMETRY
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
       ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
-      ,p_output_srid      IN  NUMBER   DEFAULT NULL
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
-      ,p_add_crs          IN  VARCHAR2 DEFAULT 'TRUE'
       ,p_add_bbox         IN  VARCHAR2 DEFAULT 'TRUE'
       ,p_properties       IN  CLOB     DEFAULT NULL
    ) RETURN CLOB;

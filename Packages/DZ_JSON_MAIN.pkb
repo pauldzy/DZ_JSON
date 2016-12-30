@@ -3,58 +3,6 @@ AS
 
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
-   FUNCTION transform(
-       p_input            IN  MDSYS.SDO_GEOMETRY
-      ,p_output_srid      IN  NUMBER   DEFAULT NULL
-   ) RETURN MDSYS.SDO_GEOMETRY
-   AS
-      sdo_output MDSYS.SDO_GEOMETRY;
-      
-   BEGIN
-      IF p_input IS NULL
-      THEN
-         RETURN NULL;
-         
-      END IF;
-      
-      IF p_output_srid IS NULL
-      THEN
-         RETURN p_input;
-         
-      END IF;
-   
-      IF p_output_srid <> p_input.SDO_SRID
-      THEN
-         -- Try to avoid transforming over equal SRIDs
-         IF  p_output_srid IN (4269,8265)
-         AND p_input.SDO_SRID IN (4269,8265)
-         THEN
-            RETURN p_input;
-         
-         ELSIF  p_output_srid IN (4326,8307)
-         AND p_input.SDO_SRID IN (4326,8307)
-         THEN
-            RETURN p_input;
-            
-         ELSIF  p_output_srid IN (3857,3785)
-         AND p_input.SDO_SRID IN (3857,3785)
-         THEN
-            RETURN p_input;
-            
-         ELSE
-            sdo_output := MDSYS.SDO_CS.TRANSFORM(p_input,p_output_srid);
-            RETURN sdo_output;
-            
-         END IF;
-         
-      END IF;
-      
-      RETURN p_input;
-      
-   END transform;
-   
-   -----------------------------------------------------------------------------
-   -----------------------------------------------------------------------------
    FUNCTION point2coords(
        p_input            IN  MDSYS.SDO_POINT_TYPE
       ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
@@ -1820,7 +1768,6 @@ AS
        p_input            IN  MDSYS.SDO_GEOMETRY
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
       ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
-      ,p_output_srid      IN  NUMBER   DEFAULT NULL
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
    ) RETURN CLOB
    AS
@@ -1839,10 +1786,7 @@ AS
       --------------------------------------------------------------------------   
       IF sdo_input IS NULL
       THEN
-         RAISE_APPLICATION_ERROR(
-             -20001
-            ,'input sdo geometry is NULL'
-         );
+         RETURN 'null';
          
       END IF;
    
@@ -1863,29 +1807,10 @@ AS
       -- Step 20
       -- Transform if required
       --------------------------------------------------------------------------   
-      IF p_output_srid IS NOT NULL
-      AND p_output_srid != sdo_input.SDO_SRID
+      IF sdo_input IS NOT NULL
+      AND sdo_input.SDO_SRID NOT IN (4326,8307)
       THEN
-         -- Try to avoid transforming over equal SRIDs
-         IF  p_output_srid IN (4269,8265)
-         AND sdo_input.SDO_SRID IN (4269,8265)
-         THEN
-            NULL;
-            
-         ELSIF  p_output_srid IN (4326,8307)
-         AND sdo_input.SDO_SRID IN (4326,8307)
-         THEN
-            NULL;
-            
-         ELSIF  p_output_srid IN (3857,3785)
-         AND sdo_input.SDO_SRID IN (3857,3785)
-         THEN
-            NULL;
-            
-         ELSE
-            sdo_input := MDSYS.SDO_CS.TRANSFORM(sdo_input,p_output_srid);
-            
-         END IF;
+         sdo_input := MDSYS.SDO_CS.TRANSFORM(sdo_input,4326);
          
       END IF;
       
@@ -1986,7 +1911,6 @@ AS
    -----------------------------------------------------------------------------
    FUNCTION sdo2bbox(
        p_input            IN  MDSYS.SDO_GEOMETRY
-      ,p_output_srid      IN  NUMBER   DEFAULT NULL
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
    ) RETURN CLOB
    AS
@@ -2001,10 +1925,12 @@ AS
          
       END IF;
       
-      sdo_input := transform(
-          p_input       => sdo_input
-         ,p_output_srid => p_output_srid
-      );
+      IF sdo_input IS NOT NULL
+      AND sdo_input.SDO_SRID NOT IN (8307,4326)
+      THEN
+         sdo_input := MDSYS.SDO_CS.TRANSFORM(sdo_input,4326);
+         
+      END IF;
       
       sdo_mbr_geom := MDSYS.SDO_GEOM.SDO_MBR(
          geom => sdo_input
@@ -2040,120 +1966,16 @@ AS
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
-   FUNCTION srid2geojson_crs(
-       p_input            IN  NUMBER
-      ,p_pretty_print     IN  NUMBER   DEFAULT NULL
-   ) RETURN CLOB
-   AS
-      str_urn    VARCHAR2(4000 Char);
-      clb_output CLOB := '';
-      str_pad    VARCHAR2(1 Char);
-      clb_inner  CLOB;
-      
-   BEGIN
-   
-      --------------------------------------------------------------------------
-      -- Step 10
-      -- Determine the urn
-      --------------------------------------------------------------------------
-      IF p_input = 8265
-      THEN
-         str_urn := 'urn:ogc:def:crs:OGC::CRS83';
-         
-      ELSIF p_input = 8307
-      THEN
-         str_urn := 'urn:ogc:def:crs:OGC::CRS84';
-      
-      ELSE
-         str_urn := 'urn:ogc:def:crs:EPSG::' || TO_CHAR(p_input);
-         
-      END IF;
-      
-      --------------------------------------------------------------------------
-      -- Step 20
-      -- Add the left bracket
-      --------------------------------------------------------------------------
-      IF p_pretty_print IS NULL
-      THEN
-         clb_output := dz_json_util.pretty('{',NULL);
-         clb_inner  := dz_json_util.pretty('{',NULL);
-         str_pad    := '';
-         
-      ELSE
-         clb_output := dz_json_util.pretty('{',-1);
-         clb_inner  := dz_json_util.pretty('{',-1);
-         str_pad    := ' ';
-         
-      END IF;
-      
-      --------------------------------------------------------------------------
-      -- Step 30
-      -- Build the crs inner object
-      --------------------------------------------------------------------------
-      clb_inner := clb_inner || dz_json_util.pretty(
-          dz_json_main.value2json(
-              'name'
-             ,str_urn
-             ,p_pretty_print + 2
-          )
-         ,p_pretty_print + 2
-      ) || dz_json_util.pretty(
-          str_pad || '}'
-         ,p_pretty_print + 1,NULL,NULL
-      );
-      
-      --------------------------------------------------------------------------
-      -- Step 40
-      -- Build the crs top object
-      --------------------------------------------------------------------------
-      clb_output := clb_output || dz_json_util.pretty(
-          str_pad || dz_json_main.value2json(
-              'type'
-             ,'name'
-             ,p_pretty_print + 1
-          )
-         ,p_pretty_print + 1
-      ) || dz_json_util.pretty(
-          ',' || dz_json_main.formatted2json(
-              'properties'
-             ,clb_inner
-             ,p_pretty_print + 1
-          )
-         ,p_pretty_print + 1
-      );
-
-      --------------------------------------------------------------------------
-      -- Step 50
-      -- Add the left bracket
-      --------------------------------------------------------------------------
-      clb_output := clb_output || dz_json_util.pretty(
-          '}'
-         ,p_pretty_print,NULL,NULL
-      );
-      
-      --------------------------------------------------------------------------
-      -- Step 60
-      -- Return results
-      --------------------------------------------------------------------------
-      RETURN clb_output;
-   
-   END srid2geojson_crs;
-   
-   -----------------------------------------------------------------------------
-   -----------------------------------------------------------------------------
    FUNCTION sdo2geojson_feature(
        p_input            IN  MDSYS.SDO_GEOMETRY
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
       ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
-      ,p_output_srid      IN  NUMBER   DEFAULT NULL
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
-      ,p_add_crs          IN  VARCHAR2 DEFAULT 'TRUE'
       ,p_add_bbox         IN  VARCHAR2 DEFAULT 'TRUE'
       ,p_properties       IN  CLOB     DEFAULT NULL
    ) RETURN CLOB
    AS
       clb_output   CLOB := '';
-      str_add_crs  VARCHAR2(4000 Char) := UPPER(p_add_crs);
       str_add_bbox VARCHAR2(4000 Char) := UPPER(p_add_bbox);
       str_pad      VARCHAR2(1 Char);
       sdo_input    MDSYS.SDO_GEOMETRY := p_input;
@@ -2164,16 +1986,6 @@ AS
       -- Step 10
       -- Check over incoming parameters
       --------------------------------------------------------------------------
-      IF str_add_crs IS NULL
-      THEN
-         str_add_crs := 'TRUE';
-         
-      ELSIF str_add_crs NOT IN ('TRUE','FALSE')
-      THEN
-         RAISE_APPLICATION_ERROR(-20001,'boolean error');
-         
-      END IF;
-      
       IF str_add_bbox IS NULL
       THEN
          str_add_bbox := 'TRUE';
@@ -2188,29 +2000,10 @@ AS
       -- Step 20
       -- Transform if required
       --------------------------------------------------------------------------   
-      IF p_output_srid IS NOT NULL
-      AND p_output_srid != sdo_input.SDO_SRID
+      IF sdo_input IS NOT NULL
+      AND sdo_input.SDO_SRID NOT IN (8307,4326)
       THEN
-         -- Try to avoid transforming over equal SRIDs
-         IF  p_output_srid IN (4269,8265)
-         AND sdo_input.SDO_SRID IN (4269,8265)
-         THEN
-            NULL;
-            
-         ELSIF  p_output_srid IN (4326,8307)
-         AND sdo_input.SDO_SRID IN (4326,8307)
-         THEN
-            NULL;
-            
-         ELSIF  p_output_srid IN (3857,3785)
-         AND sdo_input.SDO_SRID IN (3857,3785)
-         THEN
-            NULL;
-            
-         ELSE
-            sdo_input := MDSYS.SDO_CS.TRANSFORM(sdo_input,p_output_srid);
-            
-         END IF;
+         sdo_input := MDSYS.SDO_CS.TRANSFORM(sdo_input,4326);
          
       END IF;
       
@@ -2244,26 +2037,6 @@ AS
       
       --------------------------------------------------------------------------
       -- Step 50
-      -- Add crs on demand
-      --------------------------------------------------------------------------
-      IF str_add_crs = 'TRUE'
-      THEN
-         clb_output := clb_output || dz_json_util.pretty(
-             ',' || dz_json_main.formatted2json(
-                 'crs'
-                ,srid2geojson_crs(
-                     p_input        => sdo_input.SDO_SRID
-                    ,p_pretty_print => p_pretty_print + 1
-                 )
-                ,p_pretty_print + 1
-             )
-            ,p_pretty_print + 1
-         );
-         
-      END IF;
-      
-      --------------------------------------------------------------------------
-      -- Step 50
       -- Add bbox on demand
       --------------------------------------------------------------------------
       IF str_add_bbox = 'TRUE'
@@ -2273,7 +2046,6 @@ AS
                  'bbox'
                 ,sdo2bbox(
                      p_input        => sdo_input
-                    ,p_output_srid  => p_output_srid
                     ,p_prune_number => p_prune_number
                  )
                 ,p_pretty_print + 1
@@ -2294,7 +2066,6 @@ AS
                   p_input        => sdo_input
                  ,p_pretty_print => p_pretty_print + 1
                  ,p_2d_flag      => p_2d_flag
-                 ,p_output_srid  => NULL
                  ,p_prune_number => p_prune_number
               )
              ,p_pretty_print + 1
