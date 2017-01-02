@@ -421,6 +421,254 @@ AS
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
+   FUNCTION downsize_2dM(
+      p_input         IN  MDSYS.SDO_GEOMETRY
+   ) RETURN MDSYS.SDO_GEOMETRY
+   AS
+      geom_2dm      MDSYS.SDO_GEOMETRY;
+      dim_count     PLS_INTEGER;
+      measure_chk   PLS_INTEGER;
+      gtype         PLS_INTEGER;
+      n_points      PLS_INTEGER;
+      n_ordinates   PLS_INTEGER;
+      i             PLS_INTEGER;
+      j             PLS_INTEGER;
+      k             PLS_INTEGER;
+      offset        PLS_INTEGER;
+      
+   BEGIN
+
+      IF p_input IS NULL
+      THEN
+         RETURN NULL;
+         
+      END IF;
+
+      IF LENGTH (p_input.SDO_GTYPE) = 4
+      THEN
+         dim_count   := p_input.get_dims();
+         measure_chk := p_input.get_lrs_dim();
+         gtype       := p_input.get_gtype();
+         
+      ELSE
+         RAISE_APPLICATION_ERROR(
+             -20001
+            ,'unable to determine dimensionality from gtype'
+         );
+         
+      END IF;
+
+      --------------------------------------------------------------------------
+      -- Simple 2D input so just throw it back
+      --------------------------------------------------------------------------
+      IF dim_count = 2
+      THEN
+         RETURN p_input;
+         
+      --------------------------------------------------------------------------
+      -- 2D + measure on 3 so just throw it back
+      --------------------------------------------------------------------------
+      ELSIF dim_count = 3
+      AND measure_chk = 3
+      THEN
+         RETURN p_input;
+         
+      --------------------------------------------------------------------------
+      -- Simple 3D so downsize to 2D
+      --------------------------------------------------------------------------
+      ELSIF dim_count = 3
+      AND measure_chk = 0
+      THEN
+         RETURN downsize_2d(p_input);
+         
+      --------------------------------------------------------------------------
+      -- 4D so assume measure on the 4
+      --------------------------------------------------------------------------
+      ELSIF dim_count = 4
+      THEN
+         --THIS IS BECAUSE ArcSDE is DUMB!
+         measure_chk := 4;
+         
+      END IF;
+
+      IF gtype = 1
+      THEN
+         geom_2dm := MDSYS.SDO_GEOMETRY(
+             3300 + gtype
+            ,p_input.sdo_srid
+            ,MDSYS.SDO_POINT_TYPE(NULL,NULL,NULL)
+            ,NULL
+            ,NULL
+         );
+                 
+         geom_2dm.SDO_POINT.X := p_input.SDO_ORDINATES(1);
+         geom_2dm.SDO_POINT.Y := p_input.SDO_ORDINATES(2);
+         geom_2dm.SDO_POINT.Z := p_input.SDO_ORDINATES(4);
+         
+         RETURN geom_2dm;
+         
+      ELSE
+         geom_2dm := MDSYS.SDO_GEOMETRY(
+             3300 + gtype
+            ,p_input.sdo_srid
+            ,NULL
+            ,MDSYS.SDO_ELEM_INFO_ARRAY()
+            ,MDSYS.SDO_ORDINATE_ARRAY()
+         );
+         
+      END IF;
+
+      n_points    := p_input.SDO_ORDINATES.COUNT / dim_count;
+      n_ordinates := n_points * 3;
+      geom_2dm.SDO_ORDINATES.EXTEND(n_ordinates);
+      j := p_input.SDO_ORDINATES.FIRST;
+      k := 1;
+      
+      FOR i IN 1 .. n_points
+      LOOP
+         geom_2dm.SDO_ORDINATES(k) := p_input.SDO_ORDINATES(j);
+         geom_2dm.SDO_ORDINATES(k + 1) := p_input.SDO_ORDINATES(j + 1);
+         geom_2dm.SDO_ORDINATES(k + 2) := p_input.SDO_ORDINATES(j + 3);
+         j := j + dim_count;
+         k := k + 3;
+         
+      END LOOP;
+
+      geom_2dm.sdo_elem_info := p_input.sdo_elem_info;
+
+      i := geom_2dm.SDO_ELEM_INFO.FIRST;
+      WHILE i < geom_2dm.SDO_ELEM_INFO.LAST
+      LOOP
+         offset := geom_2dm.SDO_ELEM_INFO(i);
+         geom_2dm.SDO_ELEM_INFO(i) := (offset - 1) / dim_count * 2 + 1;
+         i := i + 3;
+         
+      END LOOP;
+
+      RETURN geom_2dm;
+
+   END downsize_2dM;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   FUNCTION downsize_3d(
+      p_input   IN MDSYS.SDO_GEOMETRY
+   ) RETURN MDSYS.SDO_GEOMETRY
+   AS
+      geom_3d       MDSYS.SDO_GEOMETRY;
+      num_lrs       NUMBER;
+      dim_count     PLS_INTEGER;
+      gtype         PLS_INTEGER;
+      n_points      PLS_INTEGER;
+      n_ordinates   PLS_INTEGER;
+      i             PLS_INTEGER;
+      j             PLS_INTEGER;
+      k             PLS_INTEGER;
+      offset        PLS_INTEGER;
+      
+   BEGIN
+
+      IF p_input IS NULL
+      THEN
+         RETURN NULL;
+         
+      END IF;
+
+      IF LENGTH(p_input.SDO_GTYPE) = 4
+      THEN
+         dim_count := p_input.get_dims();
+         gtype     := p_input.get_gtype();
+         num_lrs   := p_input.get_lrs_dim();
+         
+      ELSE
+         RAISE_APPLICATION_ERROR(
+             -20001
+            ,'unable to determine dimensionality from gtype'
+         );
+         
+      END IF;
+
+      IF dim_count = 3 AND num_lrs = 0
+      THEN
+         RETURN p_input;
+         
+      ELSIF dim_count = 3 AND num_lrs != 0
+      THEN
+         RETURN downsize_2d(p_input);
+         
+      ELSIF dim_count = 4 AND num_lrs = 0
+      THEN
+         -- we ASSUME that we remove the 4th dimension
+         num_lrs := 4;
+         
+      END IF;
+
+      geom_3d := MDSYS.SDO_GEOMETRY(
+          3000 + gtype
+         ,p_input.SDO_SRID
+         ,p_input.SDO_POINT
+         ,MDSYS.SDO_ELEM_INFO_ARRAY()
+         ,MDSYS.SDO_ORDINATE_ARRAY()
+      );
+
+      IF geom_3d.sdo_point IS NOT NULL
+      THEN
+         geom_3d.sdo_elem_info := NULL;
+         geom_3d.sdo_ordinates := NULL;
+         
+      ELSE
+         n_points    := p_input.SDO_ORDINATES.COUNT / dim_count;
+         n_ordinates := n_points * 3;
+         geom_3d.SDO_ORDINATES.EXTEND(n_ordinates);
+         j := p_input.SDO_ORDINATES.FIRST;
+         k := 1;
+         
+         FOR i IN 1 .. n_points
+         LOOP
+            geom_3d.SDO_ORDINATES(k) := p_input.SDO_ORDINATES(j);
+            geom_3d.SDO_ORDINATES(k + 1) := p_input.SDO_ORDINATES(j + 1);
+            
+            IF num_lrs = 4
+            THEN
+               geom_3d.SDO_ORDINATES(k + 2) := p_input.SDO_ORDINATES(j + 2);
+               
+            ELSIF num_lrs = 3
+            THEN
+               geom_3d.SDO_ORDINATES(k + 2) := p_input.SDO_ORDINATES(j + 3);
+               
+            END IF;
+            
+            j := j + dim_count;
+            k := k + 3;
+            
+         END LOOP;
+
+         geom_3d.sdo_elem_info := p_input.sdo_elem_info;
+
+         i := geom_3d.SDO_ELEM_INFO.FIRST;
+         WHILE i < geom_3d.SDO_ELEM_INFO.LAST
+         LOOP
+            offset := geom_3d.SDO_ELEM_INFO(i);
+            geom_3d.SDO_ELEM_INFO(i) := (offset - 1) / dim_count * 3 + 1;
+            i := i + 4;
+            
+         END LOOP;
+
+      END IF;
+
+      IF geom_3d.SDO_GTYPE = 2001
+      THEN
+         RETURN true_point(geom_3d);
+         
+      ELSE
+         RETURN geom_3d;
+         
+      END IF;
+
+   END downsize_3d;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
    FUNCTION prune_number(
        p_input       IN  NUMBER
       ,p_trunc       IN  NUMBER DEFAULT NULL

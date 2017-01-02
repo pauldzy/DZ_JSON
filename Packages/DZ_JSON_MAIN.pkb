@@ -3,6 +3,98 @@ AS
 
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
+   PROCEDURE geo_check(
+       p_input            IN OUT MDSYS.SDO_GEOMETRY
+      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'  
+      ,p_return_code      OUT NUMBER
+      ,p_status_message   OUT VARCHAR2
+   )
+   AS
+   
+   BEGIN
+   
+      p_return_code := 0;
+   
+      --------------------------------------------------------------------------
+      -- Step 10
+      -- Check for NULL input, null input is okay, null srid is not
+      --------------------------------------------------------------------------
+      IF p_input IS NULL
+      THEN
+         p_status_message := 'Warning, input geometry is NULL';
+         RETURN;
+         
+      END IF;
+      
+      IF p_input.SDO_SRID IS NULL
+      THEN
+         p_return_code    := -10;
+         p_status_message := 'Error, input geometry must have coordinate system defined';
+         RETURN;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 20
+      -- Remove LRS measure and downsize if needed
+      --------------------------------------------------------------------------
+      IF  p_input.get_lrs_dim() <> 0
+      THEN
+         IF p_input.get_dims() = 2
+         THEN
+            p_input := dz_json_util.downsize_2d(p_input);
+            
+         ELSIF p_input.get_dims() = 3
+         AND p_2d_flag = 'TRUE'
+         THEN
+            p_input := dz_json_util.downsize_2d(p_input);
+            
+         ELSIF p_input.get_dims() = 3
+         AND p_2d_flag <> 'TRUE'
+         THEN
+            p_input := dz_json_util.downsize_3d(p_input);
+            
+         ELSE
+            p_return_code    := -20;
+            p_status_message := 'Error, unable to remove LRS dimension';
+            RETURN;
+            
+         END IF;
+         
+      ELSE
+         IF p_input.get_dims() = 3
+         AND p_2d_flag = 'TRUE'
+         THEN
+            p_input := dz_json_util.downsize_2d(p_input);
+            
+         ELSIF p_input.get_dims() > 3
+         THEN
+            p_input := dz_json_util.downsize_3d(p_input);
+            
+         END IF;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 30
+      -- Transform if not WGS84
+      --------------------------------------------------------------------------
+      IF p_input.SDO_SRID NOT IN (8307,4326)
+      THEN
+         p_input := MDSYS.SDO_CS.TRANSFORM(sdo_input,4326);
+      
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 40
+      -- Break if geometry crosses antimeridian
+      --------------------------------------------------------------------------
+      -- To be done
+   
+   END geo_check;
+
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
    FUNCTION point2coords(
        p_input            IN  MDSYS.SDO_POINT_TYPE
       ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
@@ -1771,12 +1863,13 @@ AS
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
    ) RETURN CLOB
    AS
-      sdo_input     MDSYS.SDO_GEOMETRY := p_input;
-      str_2d_flag   VARCHAR2(5 Char)  := UPPER(p_2d_flag);
-      
-      int_gtype     PLS_INTEGER;
-      int_dims      PLS_INTEGER;
-      int_lrs       PLS_INTEGER;
+      sdo_input          MDSYS.SDO_GEOMETRY := p_input;
+      str_2d_flag        VARCHAR2(5 Char)  := UPPER(p_2d_flag);
+      num_return_code    NUMBER;
+      str_status_message VARCHAR2(4000 Char);
+      int_gtype          PLS_INTEGER;
+      int_dims           PLS_INTEGER;
+      int_lrs            PLS_INTEGER;
       
    BEGIN
    
@@ -1805,13 +1898,21 @@ AS
          
       --------------------------------------------------------------------------
       -- Step 20
-      -- Transform if required
+      -- Process the geometry
       --------------------------------------------------------------------------   
-      IF sdo_input IS NOT NULL
-      AND sdo_input.SDO_SRID NOT IN (4326,8307)
+      geo_check(
+          p_input            => sdo_input
+         ,p_2d_flag          => str_2d_flag  
+         ,p_return_code      => num_return_code
+         ,p_status_message   => str_status_message
+      );
+      IF p_return_code <> 0
       THEN
-         sdo_input := MDSYS.SDO_CS.TRANSFORM(sdo_input,4326);
-         
+         RAISE_APPLICATION_ERROR(
+             -20001
+            ,str_status_message
+         );
+      
       END IF;
       
       --------------------------------------------------------------------------
@@ -1975,10 +2076,11 @@ AS
       ,p_properties       IN  CLOB     DEFAULT NULL
    ) RETURN CLOB
    AS
-      clb_output   CLOB := '';
-      str_add_bbox VARCHAR2(4000 Char) := UPPER(p_add_bbox);
-      str_pad      VARCHAR2(1 Char);
-      sdo_input    MDSYS.SDO_GEOMETRY := p_input;
+      clb_output         CLOB := '';
+      str_add_bbox       VARCHAR2(4000 Char) := UPPER(p_add_bbox);
+      str_2d_flag        VARCHAR2(5 Char)  := UPPER(p_2d_flag);
+      str_pad            VARCHAR2(1 Char);
+      sdo_input          MDSYS.SDO_GEOMETRY := p_input;
       
    BEGIN
    
@@ -1996,17 +2098,38 @@ AS
          
       END IF;
       
-      --------------------------------------------------------------------------
-      -- Step 20
-      -- Transform if required
-      --------------------------------------------------------------------------   
-      IF sdo_input IS NOT NULL
-      AND sdo_input.SDO_SRID NOT IN (8307,4326)
+      IF str_2d_flag IS NULL
       THEN
-         sdo_input := MDSYS.SDO_CS.TRANSFORM(sdo_input,4326);
+         str_2d_flag := 'TRUE';
+         
+      ELSIF str_2d_flag NOT IN ('TRUE','FALSE')
+      THEN
+         RAISE_APPLICATION_ERROR(
+             -20001
+            ,'p_2d_flag parameter can only be TRUE or FALSE'
+         );
          
       END IF;
       
+      --------------------------------------------------------------------------
+      -- Step 20
+      -- Process the geometry
+      --------------------------------------------------------------------------
+      geo_check(
+          p_input            => sdo_input
+         ,p_2d_flag          => str_2d_flag  
+         ,p_return_code      => num_return_code
+         ,p_status_message   => str_status_message
+      );
+      IF p_return_code <> 0
+      THEN
+         RAISE_APPLICATION_ERROR(
+             -20001
+            ,str_status_message
+         );
+      
+      END IF;
+     
       --------------------------------------------------------------------------
       -- Step 30
       -- Add the left bracket
@@ -2015,13 +2138,13 @@ AS
       THEN
          clb_output := dz_json_util.pretty('{',NULL);
          str_pad    := '';
-         
+
       ELSE
          clb_output := dz_json_util.pretty('{',-1);
          str_pad    := ' ';
-         
+
       END IF;
-      
+
       --------------------------------------------------------------------------
       -- Step 40
       -- Build the object basics
@@ -2034,7 +2157,7 @@ AS
           )
          ,p_pretty_print + 1
       );
-      
+
       --------------------------------------------------------------------------
       -- Step 50
       -- Add bbox on demand
@@ -2052,7 +2175,7 @@ AS
              )
             ,p_pretty_print + 1
          );
-         
+
       END IF;
 
       --------------------------------------------------------------------------
@@ -2072,7 +2195,7 @@ AS
           )
          ,p_pretty_print + 1
       );
-      
+
       --------------------------------------------------------------------------
       -- Step 70
       -- Add Properties
@@ -2087,7 +2210,7 @@ AS
              )
             ,p_pretty_print + 1
          );
-      
+
       ELSE
          clb_output := clb_output || dz_json_util.pretty(
              ',' || dz_json_main.formatted2json(
@@ -2097,9 +2220,9 @@ AS
              )
             ,p_pretty_print + 1
          );
-      
+
       END IF;
-      
+
       --------------------------------------------------------------------------
       -- Step 80
       -- Add the left bracket
@@ -2108,15 +2231,15 @@ AS
           '}'
          ,p_pretty_print,NULL,NULL
       );
-      
+
       --------------------------------------------------------------------------
       -- Step 90
       -- Return results
       --------------------------------------------------------------------------
       RETURN clb_output;
-   
+
    END sdo2geojson_feature;
-   
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION fastname(
@@ -2125,20 +2248,20 @@ AS
    ) RETURN VARCHAR2
    AS
       str_output VARCHAR2(4000 Char);
-      
+
    BEGIN
       str_output := '"' || p_name || '":';
-      
+
       IF p_pretty_print IS NOT NULL
       THEN
          str_output := str_output || ' ';
-         
+
       END IF;
-      
+
       RETURN str_output;
-      
-   END fastname; 
-   
+
+   END fastname;
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION json_format(
@@ -2147,38 +2270,38 @@ AS
    ) RETURN VARCHAR2
    AS
       str_output VARCHAR2(4000 Char);
-   
+
    BEGIN
-   
+
       IF p_input IS NULL
       THEN
          RETURN 'null';
-         
+
       ELSE
          str_output := REGEXP_REPLACE(
              REGEXP_REPLACE(p_input ,'\\','\\\')
             ,'/'
             ,'\/'
          );
-         
+
          str_output := REGEXP_REPLACE(
              REGEXP_REPLACE(str_output,'"','\"')
             ,CHR(8)
             ,'\b'
          );
-         
+
          str_output := REGEXP_REPLACE(
              REGEXP_REPLACE(str_output,CHR(12),'\f')
             ,CHR(10)
             ,'\n'
          );
-         
+
          str_output := REGEXP_REPLACE(
              REGEXP_REPLACE(str_output,CHR(13),'')
             ,CHR(9)
             ,'\t'
          );
-         
+
          str_output := REGEXP_REPLACE(
              REGEXP_REPLACE(
                 REGEXP_REPLACE(
@@ -2204,20 +2327,20 @@ AS
             ,CHR(50057)
             ,'\u00C9'
          );
-         
+
          IF p_quote_strings = 'FALSE'
-         THEN 
+         THEN
             RETURN str_output;
-            
+
          ELSE
             RETURN '"' || str_output || '"';
-            
+
          END IF;
-         
+
       END IF;
-      
-   END json_format;   
-   
+
+   END json_format;
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION json_format(
@@ -2226,29 +2349,29 @@ AS
    ) RETURN VARCHAR2
    AS
       str_output VARCHAR2(4000 Char);
-      
+
    BEGIN
-   
+
       IF p_input IS NULL
       THEN
          RETURN 'null';
-         
+
       ELSE
          str_output := TO_CHAR(p_input);
-         
+
          IF SUBSTR(str_output,1,1) = '.'
          THEN
             RETURN '0' || str_output;
-            
+
          ELSE
             RETURN str_output;
-            
+
          END IF;
-         
+
       END IF;
-      
+
    END json_format;
-   
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION json_format(
@@ -2260,21 +2383,21 @@ AS
       IF p_input IS NULL
       THEN
          RETURN 'null';
-         
+
       ELSE
          IF p_quote_strings = 'FALSE'
-         THEN 
+         THEN
             RETURN TO_CHAR(TO_TIMESTAMP(p_input),'YYYY-MM-DD"T"HH24:MI:SS.FF2TZR');
-            
+
          ELSE
             RETURN '"' || TO_CHAR(TO_TIMESTAMP(p_input),'YYYY-MM-DD"T"HH24:MI:SS.FF2TZR') || '"';
-            
+
          END IF;
-         
+
       END IF;
-      
+
    END json_format;
-   
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION json_format(
@@ -2283,38 +2406,38 @@ AS
    ) RETURN CLOB
    AS
       clb_output CLOB;
-      
+
    BEGIN
-   
+
       IF p_input IS NULL
       THEN
          RETURN TO_CLOB('null');
-         
+
       ELSE
          clb_output := REGEXP_REPLACE(
              REGEXP_REPLACE(p_input ,'\\','\\\')
             ,'/'
             ,'\/'
          );
-         
+
          clb_output := REGEXP_REPLACE(
              REGEXP_REPLACE(clb_output,'"','\"')
             ,CHR(8)
             ,'\b'
          );
-         
+
          clb_output := REGEXP_REPLACE(
              REGEXP_REPLACE(clb_output,CHR(12),'\f')
             ,CHR(10)
             ,'\n'
          );
-         
+
          clb_output := REGEXP_REPLACE(
              REGEXP_REPLACE(clb_output,CHR(13),'')
             ,CHR(9)
             ,'\t'
          );
-         
+
          clb_output := REGEXP_REPLACE(
              REGEXP_REPLACE(
                 REGEXP_REPLACE(
@@ -2340,20 +2463,20 @@ AS
             ,CHR(50057)
             ,'\u00C9'
          );
-         
+
          IF p_quote_strings = 'FALSE'
-         THEN 
+         THEN
             RETURN clb_output;
-            
+
          ELSE
             RETURN TO_CLOB('"') || clb_output || TO_CLOB('"');
-            
+
          END IF;
-         
+
       END IF;
-   
+
    END json_format;
-   
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION value2json(
@@ -2371,7 +2494,7 @@ AS
       );
 
    END value2json;
-   
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION value2json(
@@ -2387,9 +2510,9 @@ AS
             ,p_pretty_print
          ) || json_format(p_input)
       );
-      
+
    END value2json;
-   
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION value2json(
@@ -2405,9 +2528,9 @@ AS
             ,p_pretty_print
          ) || json_format(p_input)
       );
-      
+
    END value2json;
-   
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION value2json(
@@ -2425,7 +2548,7 @@ AS
       );
 
    END value2json;
-   
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION value2json(
@@ -2436,9 +2559,9 @@ AS
    AS
       clb_output CLOB;
       str_pad    VARCHAR2(1 Char);
-      
+
    BEGIN
-      
+
       --------------------------------------------------------------------------
       -- Step 10
       -- Build the json value name
@@ -2446,7 +2569,7 @@ AS
       clb_output := TO_CLOB(
          fastname(p_name,p_pretty_print)
       );
-     
+
       --------------------------------------------------------------------------
       -- Step 20
       -- Exit if value is NULL
@@ -2455,9 +2578,9 @@ AS
       OR p_input.COUNT = 0
       THEN
          RETURN clb_output || TO_CLOB('null');
-         
+
       END IF;
-      
+
       --------------------------------------------------------------------------
       -- Step 30
       -- Start bracket the array with brace
@@ -2468,15 +2591,15 @@ AS
              '['
             ,NULL
          );
-                    
+
       ELSE
          clb_output := clb_output || dz_json_util.pretty(
              '['
             ,-1
          );
-                    
+
       END IF;
-         
+
       --------------------------------------------------------------------------
       -- Step 40
       -- Spin out the values
@@ -2488,11 +2611,11 @@ AS
              str_pad || json_format(p_input(i))
             ,p_pretty_print + 1
          );
-                       
+
          str_pad := ',';
-            
-      END LOOP;  
-         
+
+      END LOOP;
+
       --------------------------------------------------------------------------
       -- Step 50
       -- End bracket the array with brace
@@ -2503,15 +2626,15 @@ AS
          ,NULL
          ,NULL
       );
- 
+
       --------------------------------------------------------------------------
       -- Step 60
       -- Return the results
       --------------------------------------------------------------------------
       RETURN clb_output;
-      
+
    END value2json;
-   
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION value2json(
@@ -2522,9 +2645,9 @@ AS
    AS
       clb_output CLOB;
       str_pad    VARCHAR2(1 Char);
-      
+
    BEGIN
-   
+
       --------------------------------------------------------------------------
       -- Step 10
       -- Build the json value name
@@ -2533,7 +2656,7 @@ AS
           p_name
          ,p_pretty_print
       );
-      
+
       --------------------------------------------------------------------------
       -- Step 20
       -- Exit if value is NULL
@@ -2542,9 +2665,9 @@ AS
       OR p_input.COUNT = 0
       THEN
          RETURN clb_output || TO_CLOB('null');
-         
+
       END IF;
-      
+
       --------------------------------------------------------------------------
       -- Step 30
       -- Start bracket the array with brace
@@ -2552,12 +2675,12 @@ AS
       IF p_pretty_print IS NULL
       THEN
          clb_output := clb_output || dz_json_util.pretty('[',NULL);
-                    
+
       ELSE
          clb_output := clb_output || dz_json_util.pretty('[',-1);
-                    
+
       END IF;
-   
+
       --------------------------------------------------------------------------
       -- Step 40
       -- Spin out the values
@@ -2569,11 +2692,11 @@ AS
              str_pad || json_format(p_input(i))
             ,p_pretty_print + 1
          );
-         
+
          str_pad := ',';
-            
-      END LOOP;  
-         
+
+      END LOOP;
+
       --------------------------------------------------------------------------
       -- Step 50
       -- End bracket the array with brace
@@ -2584,15 +2707,15 @@ AS
          ,NULL
          ,NULL
       );
- 
+
       --------------------------------------------------------------------------
       -- Step 60
       -- Return the results
       --------------------------------------------------------------------------
       RETURN clb_output;
-   
+
    END value2json;
-   
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION formatted2json(
@@ -2608,7 +2731,7 @@ AS
             ,p_pretty_print  => p_pretty_print
          ) || p_input
       );
-      
+
    END formatted2json;
 
    -----------------------------------------------------------------------------
@@ -2621,34 +2744,34 @@ AS
    AS
       str_output     VARCHAR2(4000 Char);
       str_comma_flag VARCHAR2(5 Char) := UPPER(p_comma_flag);
-      
+
    BEGIN
-      
+
       IF str_comma_flag IS NULL
       THEN
          str_comma_flag := 'FALSE';
-         
+
       ELSIF str_comma_flag NOT IN ('TRUE','FALSE')
       THEN
          RAISE_APPLICATION_ERROR(-20001,'boolean error');
-         
+
       END IF;
-      
+
       str_output := fastname(p_name,p_pretty_print) || 'null';
-      
+
       IF p_comma_flag = 'TRUE'
       THEN
          str_output := str_output || ',';
-         
+
       END IF;
-      
+
       RETURN dz_json_util.pretty(
           str_output
          ,p_pretty_print
       );
-      
+
    END empty_scalar2json;
-   
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION empty_array2json(
@@ -2659,37 +2782,37 @@ AS
    AS
       str_output     VARCHAR2(4000 Char);
       str_comma_flag VARCHAR2(5 Char) := UPPER(p_comma_flag);
-      
+
    BEGIN
-      
+
       IF str_comma_flag IS NULL
       THEN
          str_comma_flag := 'FALSE';
-         
+
       ELSIF str_comma_flag NOT IN ('TRUE','FALSE')
       THEN
          RAISE_APPLICATION_ERROR(
              -20001
             ,'boolean error'
          );
-         
+
       END IF;
-      
+
       str_output := fastname(p_name,p_pretty_print) || '[]';
-      
+
       IF p_comma_flag = 'TRUE'
       THEN
          str_output := str_output || ',';
-         
+
       END IF;
-      
+
       RETURN dz_json_util.pretty(
           str_output
          ,p_pretty_print
       );
-      
+
    END empty_array2json;
-   
+
 END dz_json_main;
 /
 
