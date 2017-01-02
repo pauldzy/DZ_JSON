@@ -51,7 +51,7 @@ dual;
 
 #### GeoJSON Feature Conversion Example:
 
-3D Point with properties and numeric precision pruning including SRS info
+3D Point with properties and numeric precision pruning
 
 ```sql
 SELECT  
