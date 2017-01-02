@@ -1906,7 +1906,7 @@ AS
          ,p_return_code      => num_return_code
          ,p_status_message   => str_status_message
       );
-      IF p_return_code <> 0
+      IF num_return_code <> 0
       THEN
          RAISE_APPLICATION_ERROR(
              -20001
@@ -2078,7 +2078,9 @@ AS
    AS
       clb_output         CLOB := '';
       str_add_bbox       VARCHAR2(4000 Char) := UPPER(p_add_bbox);
-      str_2d_flag        VARCHAR2(5 Char)  := UPPER(p_2d_flag);
+      str_2d_flag        VARCHAR2(5 Char)    := UPPER(p_2d_flag);
+      num_return_code    NUMBER;
+      str_status_message VARCHAR2(4000 Char);
       str_pad            VARCHAR2(1 Char);
       sdo_input          MDSYS.SDO_GEOMETRY := p_input;
       
@@ -2121,7 +2123,7 @@ AS
          ,p_return_code      => num_return_code
          ,p_status_message   => str_status_message
       );
-      IF p_return_code <> 0
+      IF num_return_code <> 0
       THEN
          RAISE_APPLICATION_ERROR(
              -20001
