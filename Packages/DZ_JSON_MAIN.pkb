@@ -1859,7 +1859,7 @@ AS
    FUNCTION sdo2geojson(
        p_input            IN  MDSYS.SDO_GEOMETRY
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
-      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
+      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
    ) RETURN CLOB
    AS
@@ -2070,9 +2070,9 @@ AS
    FUNCTION sdo2geojson_feature(
        p_input            IN  MDSYS.SDO_GEOMETRY
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
-      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
+      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
-      ,p_add_bbox         IN  VARCHAR2 DEFAULT 'TRUE'
+      ,p_add_bbox         IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_properties       IN  CLOB     DEFAULT NULL
    ) RETURN CLOB
    AS
@@ -2092,7 +2092,7 @@ AS
       --------------------------------------------------------------------------
       IF str_add_bbox IS NULL
       THEN
-         str_add_bbox := 'TRUE';
+         str_add_bbox := 'FALSE';
          
       ELSIF str_add_bbox NOT IN ('TRUE','FALSE')
       THEN
