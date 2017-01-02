@@ -11,7 +11,7 @@ Note these packages were created in the Oracle 10g days to transform Oracle and 
 ```sql
 SELECT  
 dz_json_main.sdo2geojson(
-   p_input  => MDSYS.SDO_GEOMETRY(2001,NULL,SDO_POINT_TYPE(-79,37,NULL),NULL,NULL) 
+   p_input  => MDSYS.SDO_GEOMETRY(2001,8307,SDO_POINT_TYPE(-79,37,NULL),NULL,NULL) 
 )  
 FROM  
 dual;
@@ -25,7 +25,7 @@ SELECT
 dz_json_main.sdo2geojson(
    p_input  => MDSYS.SDO_GEOMETRY(
        2003
-      ,NULL
+      ,4326
       ,NULL
       ,MDSYS.SDO_ELEM_INFO_ARRAY(1,1003,1)
       ,MDSYS.SDO_ORDINATE_ARRAY(5,1, 8,1, 8,6, 5,7, 5,1)
