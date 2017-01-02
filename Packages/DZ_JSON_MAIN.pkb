@@ -81,7 +81,7 @@ AS
       --------------------------------------------------------------------------
       IF p_input.SDO_SRID NOT IN (8307,4326)
       THEN
-         p_input := MDSYS.SDO_CS.TRANSFORM(sdo_input,4326);
+         p_input := MDSYS.SDO_CS.TRANSFORM(p_input,4326);
       
       END IF;
       
