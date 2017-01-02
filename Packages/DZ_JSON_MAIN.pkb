@@ -1885,7 +1885,7 @@ AS
    
       IF str_2d_flag IS NULL
       THEN
-         str_2d_flag := 'TRUE';
+         str_2d_flag := 'FALSE';
          
       ELSIF str_2d_flag NOT IN ('TRUE','FALSE')
       THEN
@@ -2102,7 +2102,7 @@ AS
       
       IF str_2d_flag IS NULL
       THEN
-         str_2d_flag := 'TRUE';
+         str_2d_flag := 'FALSE';
          
       ELSIF str_2d_flag NOT IN ('TRUE','FALSE')
       THEN
