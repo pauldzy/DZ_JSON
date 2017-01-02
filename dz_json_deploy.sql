@@ -1640,8 +1640,8 @@ AS
    /*
    header: DZ_JSON
      
-   - Build ID: 4
-   - Change Set: 9135af34f8c0ed9dd533df4b679002393572a92c
+   - Build ID: 6
+   - Change Set: 4d9e6d0d5a5dbd2d8fbaff2bf7971fb449a4ca2c
    
    Utility for the creation of JSON and GeoJSON from Oracle data types and
    structures.  Support for the deserialization of JSON is not implemented.
@@ -1710,7 +1710,7 @@ AS
    FUNCTION sdo2geojson(
        p_input            IN  MDSYS.SDO_GEOMETRY
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
-      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
+      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
    ) RETURN CLOB;
    
@@ -1769,9 +1769,9 @@ AS
    FUNCTION sdo2geojson_feature(
        p_input            IN  MDSYS.SDO_GEOMETRY
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
-      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
+      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
-      ,p_add_bbox         IN  VARCHAR2 DEFAULT 'TRUE'
+      ,p_add_bbox         IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_properties       IN  CLOB     DEFAULT NULL
    ) RETURN CLOB;
    
@@ -3839,7 +3839,7 @@ AS
    FUNCTION sdo2geojson(
        p_input            IN  MDSYS.SDO_GEOMETRY
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
-      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
+      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
    ) RETURN CLOB
    AS
@@ -3865,7 +3865,7 @@ AS
    
       IF str_2d_flag IS NULL
       THEN
-         str_2d_flag := 'TRUE';
+         str_2d_flag := 'FALSE';
          
       ELSIF str_2d_flag NOT IN ('TRUE','FALSE')
       THEN
@@ -4050,9 +4050,9 @@ AS
    FUNCTION sdo2geojson_feature(
        p_input            IN  MDSYS.SDO_GEOMETRY
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
-      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
+      ,p_2d_flag          IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
-      ,p_add_bbox         IN  VARCHAR2 DEFAULT 'TRUE'
+      ,p_add_bbox         IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_properties       IN  CLOB     DEFAULT NULL
    ) RETURN CLOB
    AS
@@ -4072,7 +4072,7 @@ AS
       --------------------------------------------------------------------------
       IF str_add_bbox IS NULL
       THEN
-         str_add_bbox := 'TRUE';
+         str_add_bbox := 'FALSE';
          
       ELSIF str_add_bbox NOT IN ('TRUE','FALSE')
       THEN
@@ -4082,7 +4082,7 @@ AS
       
       IF str_2d_flag IS NULL
       THEN
-         str_2d_flag := 'TRUE';
+         str_2d_flag := 'FALSE';
          
       ELSIF str_2d_flag NOT IN ('TRUE','FALSE')
       THEN
@@ -6780,7 +6780,7 @@ AS
       --------------------------------------------------------------------------
       IF str_2d_flag IS NULL
       THEN
-         str_2d_flag := 'TRUE';
+         str_2d_flag := 'FALSE';
          
       ELSIF str_2d_flag NOT IN ('FALSE','TRUE')
       THEN
@@ -7126,7 +7126,7 @@ AS
       --------------------------------------------------------------------------
       IF str_2d_flag IS NULL
       THEN
-         str_2d_flag := 'TRUE';
+         str_2d_flag := 'FALSE';
          
       ELSIF str_2d_flag NOT IN ('FALSE','TRUE')
       THEN
@@ -7268,10 +7268,10 @@ CREATE OR REPLACE PACKAGE dz_json_test
 AUTHID DEFINER
 AS
 
-   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '9135af34f8c0ed9dd533df4b679002393572a92c';
+   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '4d9e6d0d5a5dbd2d8fbaff2bf7971fb449a4ca2c';
    C_JENKINS_JOBNM CONSTANT VARCHAR2(255 Char) := 'DZ_JSON';
-   C_JENKINS_BUILD CONSTANT NUMBER := 4;
-   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '4';
+   C_JENKINS_BUILD CONSTANT NUMBER := 6;
+   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '6';
    
    C_PREREQUISITES CONSTANT MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY(
    );
