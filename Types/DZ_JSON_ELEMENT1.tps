@@ -9,6 +9,7 @@ AS OBJECT (
    ,element_null     INTEGER
    ,element_obj      dz_json_element2_obj
    ,element_vry      dz_json_element2_vry
+   ,element_obj_vry  dz_json_element2_obj_vry
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
@@ -55,6 +56,14 @@ AS OBJECT (
    ,CONSTRUCTOR FUNCTION dz_json_element1(
        p_name                IN  VARCHAR2
       ,p_element_vry         IN  dz_json_element2_vry
+   ) RETURN SELF AS RESULT
+   
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name                IN  VARCHAR2
+      ,p_element_obj_vry     IN  dz_json_element2_obj_vry
    ) RETURN SELF AS RESULT
      
    -----------------------------------------------------------------------------

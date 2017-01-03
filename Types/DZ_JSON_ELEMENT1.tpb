@@ -151,6 +151,29 @@ AS
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name                IN  VARCHAR2
+      ,p_element_obj_vry     IN  dz_json_element2_obj_vry
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_obj_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_obj_vry := p_element_obj_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element1;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
    MEMBER FUNCTION isNULL
    RETURN VARCHAR2
    AS
@@ -169,6 +192,10 @@ AS
       AND ( 
          self.element_vry IS NULL
          OR self.element_vry.COUNT = 0 
+      )
+      AND ( 
+         self.element_obj_vry IS NULL
+         OR self.element_obj_vry.COUNT = 0 
       )
       THEN
          RETURN 'TRUE';
@@ -306,6 +333,45 @@ AS
       
       --------------------------------------------------------------------------
       -- Step 90
+      -- Subobject output
+      --------------------------------------------------------------------------
+      IF self.element_obj_vry IS NOT NULL
+      THEN
+         IF p_pretty_print IS NULL
+         THEN
+            clb_vry := dz_json_util.pretty('[',NULL);
+            str_pad := '';
+            
+         ELSE
+            clb_vry := dz_json_util.pretty('[',-1);
+            str_pad := ' ';
+            
+         END IF;
+         str_init := str_pad;
+         
+         FOR i IN 1 .. self.element_obj_vry.COUNT
+         LOOP
+            clb_vry := clb_vry || dz_json_util.pretty(
+                str_init || self.element_obj_vry(i).toJSON(
+                  p_pretty_print => p_pretty_print + 1
+                )
+               ,p_pretty_print + 1
+            );
+            str_init := ',';
+           
+         END LOOP;
+         
+         clb_vry := clb_vry || dz_json_util.pretty(
+             ']'
+            ,p_pretty_print,NULL,NULL
+         );
+      
+         RETURN clb_vry;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 100
       -- Element must be null
       --------------------------------------------------------------------------
       RETURN 'null';

@@ -28,7 +28,7 @@ AS OBJECT (
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    ,MEMBER FUNCTION toJSON(
-       p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
+       p_2d_flag          IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
       ,p_add_bbox         IN  VARCHAR2 DEFAULT 'FALSE'
