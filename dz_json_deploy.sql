@@ -1640,8 +1640,8 @@ AS
    /*
    header: DZ_JSON
      
-   - Build ID: 6
-   - Change Set: 4d9e6d0d5a5dbd2d8fbaff2bf7971fb449a4ca2c
+   - Build ID: 1
+   - Change Set: 0df1e4ba8fabe038ce64b0da6e2ad924a7e0c134
    
    Utility for the creation of JSON and GeoJSON from Oracle data types and
    structures.  Support for the deserialization of JSON is not implemented.
@@ -5224,6 +5224,17 @@ END;
 
 --
 --*************************--
+PROMPT DZ_JSON_ELEMENT3_OBJ_VRY.tps;
+
+CREATE OR REPLACE TYPE dz_json_element3_obj_vry FORCE
+AS 
+VARRAY(1048576) OF dz_json_element3_obj;
+/
+
+GRANT EXECUTE ON dz_json_element3_obj_vry TO PUBLIC;
+
+--
+--*************************--
 PROMPT DZ_JSON_ELEMENT2.tps;
 
 CREATE OR REPLACE TYPE dz_json_element2 FORCE
@@ -5237,6 +5248,7 @@ AS OBJECT (
    ,element_null     INTEGER
    ,element_obj      dz_json_element3_obj
    ,element_vry      dz_json_element3_vry
+   ,element_obj_vry  dz_json_element3_obj_vry
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
@@ -5283,6 +5295,13 @@ AS OBJECT (
    ,CONSTRUCTOR FUNCTION dz_json_element2(
        p_name                IN  VARCHAR2
       ,p_element_vry         IN  dz_json_element3_vry
+   ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element2(
+       p_name                IN  VARCHAR2
+      ,p_element_obj_vry     IN  dz_json_element3_obj_vry
    ) RETURN SELF AS RESULT
      
    -----------------------------------------------------------------------------
@@ -5458,6 +5477,29 @@ AS
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element2(
+       p_name                IN  VARCHAR2
+      ,p_element_obj_vry     IN  dz_json_element3_obj_vry
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_obj_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_obj_vry := p_element_obj_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element2;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
    MEMBER FUNCTION isNULL
    RETURN VARCHAR2
    AS
@@ -5476,6 +5518,10 @@ AS
       AND ( 
          self.element_vry IS NULL
          OR self.element_vry.COUNT = 0 
+      )
+      AND ( 
+         self.element_obj_vry IS NULL
+         OR self.element_obj_vry.COUNT = 0 
       )
       THEN
          RETURN 'TRUE';
@@ -5613,6 +5659,45 @@ AS
       
       --------------------------------------------------------------------------
       -- Step 90
+      -- Subobject output
+      --------------------------------------------------------------------------
+      IF self.element_obj_vry IS NOT NULL
+      THEN
+         IF p_pretty_print IS NULL
+         THEN
+            clb_vry := dz_json_util.pretty('[',NULL);
+            str_pad := '';
+            
+         ELSE
+            clb_vry := dz_json_util.pretty('[',-1);
+            str_pad := ' ';
+            
+         END IF;
+         str_init := str_pad;
+         
+         FOR i IN 1 .. self.element_obj_vry.COUNT
+         LOOP
+            clb_vry := clb_vry || dz_json_util.pretty(
+                str_init || self.element_obj_vry(i).toJSON(
+                  p_pretty_print => p_pretty_print + 1
+                )
+               ,p_pretty_print + 1
+            );
+            str_init := ',';
+           
+         END LOOP;
+         
+         clb_vry := clb_vry || dz_json_util.pretty(
+             ']'
+            ,p_pretty_print,NULL,NULL
+         );
+      
+         RETURN clb_vry;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 100
       -- Element must be null
       --------------------------------------------------------------------------
       RETURN 'null';
@@ -5769,6 +5854,17 @@ END;
 
 --
 --*************************--
+PROMPT DZ_JSON_ELEMENT2_OBJ_VRY.tps;
+
+CREATE OR REPLACE TYPE dz_json_element2_obj_vry FORCE
+AS 
+VARRAY(1048576) OF dz_json_element2_obj;
+/
+
+GRANT EXECUTE ON dz_json_element2_obj_vry TO PUBLIC;
+
+--
+--*************************--
 PROMPT DZ_JSON_ELEMENT1.tps;
 
 CREATE OR REPLACE TYPE dz_json_element1 FORCE
@@ -5782,6 +5878,7 @@ AS OBJECT (
    ,element_null     INTEGER
    ,element_obj      dz_json_element2_obj
    ,element_vry      dz_json_element2_vry
+   ,element_obj_vry  dz_json_element2_obj_vry
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
@@ -5828,6 +5925,14 @@ AS OBJECT (
    ,CONSTRUCTOR FUNCTION dz_json_element1(
        p_name                IN  VARCHAR2
       ,p_element_vry         IN  dz_json_element2_vry
+   ) RETURN SELF AS RESULT
+   
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name                IN  VARCHAR2
+      ,p_element_obj_vry     IN  dz_json_element2_obj_vry
    ) RETURN SELF AS RESULT
      
    -----------------------------------------------------------------------------
@@ -6003,6 +6108,29 @@ AS
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name                IN  VARCHAR2
+      ,p_element_obj_vry     IN  dz_json_element2_obj_vry
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_obj_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_obj_vry := p_element_obj_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element1;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
    MEMBER FUNCTION isNULL
    RETURN VARCHAR2
    AS
@@ -6021,6 +6149,10 @@ AS
       AND ( 
          self.element_vry IS NULL
          OR self.element_vry.COUNT = 0 
+      )
+      AND ( 
+         self.element_obj_vry IS NULL
+         OR self.element_obj_vry.COUNT = 0 
       )
       THEN
          RETURN 'TRUE';
@@ -6158,6 +6290,45 @@ AS
       
       --------------------------------------------------------------------------
       -- Step 90
+      -- Subobject output
+      --------------------------------------------------------------------------
+      IF self.element_obj_vry IS NOT NULL
+      THEN
+         IF p_pretty_print IS NULL
+         THEN
+            clb_vry := dz_json_util.pretty('[',NULL);
+            str_pad := '';
+            
+         ELSE
+            clb_vry := dz_json_util.pretty('[',-1);
+            str_pad := ' ';
+            
+         END IF;
+         str_init := str_pad;
+         
+         FOR i IN 1 .. self.element_obj_vry.COUNT
+         LOOP
+            clb_vry := clb_vry || dz_json_util.pretty(
+                str_init || self.element_obj_vry(i).toJSON(
+                  p_pretty_print => p_pretty_print + 1
+                )
+               ,p_pretty_print + 1
+            );
+            str_init := ',';
+           
+         END LOOP;
+         
+         clb_vry := clb_vry || dz_json_util.pretty(
+             ']'
+            ,p_pretty_print,NULL,NULL
+         );
+      
+         RETURN clb_vry;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 100
       -- Element must be null
       --------------------------------------------------------------------------
       RETURN 'null';
@@ -6311,6 +6482,17 @@ AS
    
 END;
 /
+
+--
+--*************************--
+PROMPT DZ_JSON_ELEMENT1_OBJ_VRY.tps;
+
+CREATE OR REPLACE TYPE dz_json_element1_obj_vry FORCE
+AS 
+VARRAY(1048576) OF dz_json_element1_obj;
+/
+
+GRANT EXECUTE ON dz_json_element1_obj_vry TO PUBLIC;
 
 --
 --*************************--
@@ -6683,7 +6865,7 @@ AS OBJECT (
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    ,MEMBER FUNCTION toJSON(
-       p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
+       p_2d_flag          IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
       ,p_add_bbox         IN  VARCHAR2 DEFAULT 'FALSE'
@@ -6757,7 +6939,7 @@ AS
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    MEMBER FUNCTION toJSON(
-       p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
+       p_2d_flag          IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
       ,p_add_bbox         IN  VARCHAR2 DEFAULT 'FALSE'
@@ -6993,7 +7175,7 @@ AS OBJECT (
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    ,MEMBER FUNCTION toJSON(
-       p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
+       p_2d_flag          IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
       ,p_add_bbox         IN  VARCHAR2 DEFAULT 'FALSE'
@@ -7104,7 +7286,7 @@ AS
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    MEMBER FUNCTION toJSON(
-       p_2d_flag          IN  VARCHAR2 DEFAULT 'TRUE'
+       p_2d_flag          IN  VARCHAR2 DEFAULT 'FALSE'
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
       ,p_prune_number     IN  NUMBER   DEFAULT NULL
       ,p_add_bbox         IN  VARCHAR2 DEFAULT 'FALSE'
@@ -7268,10 +7450,10 @@ CREATE OR REPLACE PACKAGE dz_json_test
 AUTHID DEFINER
 AS
 
-   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '4d9e6d0d5a5dbd2d8fbaff2bf7971fb449a4ca2c';
+   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '0df1e4ba8fabe038ce64b0da6e2ad924a7e0c134';
    C_JENKINS_JOBNM CONSTANT VARCHAR2(255 Char) := 'DZ_JSON';
-   C_JENKINS_BUILD CONSTANT NUMBER := 6;
-   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '6';
+   C_JENKINS_BUILD CONSTANT NUMBER := 1;
+   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '1';
    
    C_PREREQUISITES CONSTANT MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY(
    );
