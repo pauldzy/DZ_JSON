@@ -247,6 +247,12 @@ AS
    
    FUNCTION value2json(
        p_name             IN  VARCHAR2
+      ,p_input            IN  BOOLEAN
+      ,p_pretty_print     IN  NUMBER   DEFAULT NULL
+   ) RETURN CLOB;
+   
+   FUNCTION value2json(
+       p_name             IN  VARCHAR2
       ,p_input            IN  CLOB
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
    ) RETURN CLOB;

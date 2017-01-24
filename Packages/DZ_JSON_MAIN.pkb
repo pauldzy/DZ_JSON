@@ -2532,6 +2532,34 @@ AS
       );
 
    END value2json;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   FUNCTION value2json(
+       p_name             IN  VARCHAR2
+      ,p_input            IN  BOOLEAN
+      ,p_pretty_print     IN  NUMBER   DEFAULT NULL
+   ) RETURN CLOB
+   AS
+   BEGIN
+      IF p_input
+      THEN
+         RETURN TO_CLOB(
+            fastname(
+             p_name
+            ,p_pretty_print
+         ) || 'true');
+         
+      ELSE
+         RETURN TO_CLOB(
+            fastname(
+             p_name
+            ,p_pretty_print
+         ) || 'false');
+      
+      END IF;      
+   
+   END value2json;
 
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
