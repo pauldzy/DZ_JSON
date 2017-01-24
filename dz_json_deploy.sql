@@ -1640,8 +1640,8 @@ AS
    /*
    header: DZ_JSON
      
-   - Build ID: 1
-   - Change Set: 0df1e4ba8fabe038ce64b0da6e2ad924a7e0c134
+   - Build ID: 9
+   - Change Set: 6b1698b0d451dfb5778a1586383760c52e46b5dd
    
    Utility for the creation of JSON and GeoJSON from Oracle data types and
    structures.  Support for the deserialization of JSON is not implemented.
@@ -1876,6 +1876,12 @@ AS
    FUNCTION value2json(
        p_name             IN  VARCHAR2
       ,p_input            IN  DATE
+      ,p_pretty_print     IN  NUMBER   DEFAULT NULL
+   ) RETURN CLOB;
+   
+   FUNCTION value2json(
+       p_name             IN  VARCHAR2
+      ,p_input            IN  BOOLEAN
       ,p_pretty_print     IN  NUMBER   DEFAULT NULL
    ) RETURN CLOB;
    
@@ -4511,6 +4517,34 @@ AS
          ) || json_format(p_input)
       );
 
+   END value2json;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   FUNCTION value2json(
+       p_name             IN  VARCHAR2
+      ,p_input            IN  BOOLEAN
+      ,p_pretty_print     IN  NUMBER   DEFAULT NULL
+   ) RETURN CLOB
+   AS
+   BEGIN
+      IF p_input
+      THEN
+         RETURN TO_CLOB(
+            fastname(
+             p_name
+            ,p_pretty_print
+         ) || 'true');
+         
+      ELSE
+         RETURN TO_CLOB(
+            fastname(
+             p_name
+            ,p_pretty_print
+         ) || 'false');
+      
+      END IF;      
+   
    END value2json;
 
    -----------------------------------------------------------------------------
@@ -7450,10 +7484,10 @@ CREATE OR REPLACE PACKAGE dz_json_test
 AUTHID DEFINER
 AS
 
-   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '0df1e4ba8fabe038ce64b0da6e2ad924a7e0c134';
+   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '6b1698b0d451dfb5778a1586383760c52e46b5dd';
    C_JENKINS_JOBNM CONSTANT VARCHAR2(255 Char) := 'DZ_JSON';
-   C_JENKINS_BUILD CONSTANT NUMBER := 1;
-   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '1';
+   C_JENKINS_BUILD CONSTANT NUMBER := 9;
+   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '9';
    
    C_PREREQUISITES CONSTANT MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY(
    );
