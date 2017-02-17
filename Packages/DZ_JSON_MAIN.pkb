@@ -2360,14 +2360,18 @@ AS
 
       ELSE
          str_output := TO_CHAR(p_input);
-
+         
          IF SUBSTR(str_output,1,1) = '.'
          THEN
             RETURN '0' || str_output;
-
+            
+         ELSIF SUBSTR(str_output,1,2) = '-.'
+         THEN
+            RETURN '-0' || SUBSTR(str_output,2);
+            
          ELSE
             RETURN str_output;
-
+            
          END IF;
 
       END IF;
