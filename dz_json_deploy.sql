@@ -1640,8 +1640,8 @@ AS
    /*
    header: DZ_JSON
      
-   - Build ID: 9
-   - Change Set: 6b1698b0d451dfb5778a1586383760c52e46b5dd
+   - Build ID: 16
+   - Change Set: 083803f928bab975420cb9631bebf9d6c5a1734d
    
    Utility for the creation of JSON and GeoJSON from Oracle data types and
    structures.  Support for the deserialization of JSON is not implemented.
@@ -4346,14 +4346,18 @@ AS
 
       ELSE
          str_output := TO_CHAR(p_input);
-
+         
          IF SUBSTR(str_output,1,1) = '.'
          THEN
             RETURN '0' || str_output;
-
+            
+         ELSIF SUBSTR(str_output,1,2) = '-.'
+         THEN
+            RETURN '-0' || SUBSTR(str_output,2);
+            
          ELSE
             RETURN str_output;
-
+            
          END IF;
 
       END IF;
@@ -7484,10 +7488,10 @@ CREATE OR REPLACE PACKAGE dz_json_test
 AUTHID DEFINER
 AS
 
-   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '6b1698b0d451dfb5778a1586383760c52e46b5dd';
+   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '083803f928bab975420cb9631bebf9d6c5a1734d';
    C_JENKINS_JOBNM CONSTANT VARCHAR2(255 Char) := 'DZ_JSON';
-   C_JENKINS_BUILD CONSTANT NUMBER := 9;
-   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '9';
+   C_JENKINS_BUILD CONSTANT NUMBER := 16;
+   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '16';
    
    C_PREREQUISITES CONSTANT MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY(
    );
