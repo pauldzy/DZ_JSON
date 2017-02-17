@@ -1640,8 +1640,8 @@ AS
    /*
    header: DZ_JSON
      
-   - Build ID: 16
-   - Change Set: 083803f928bab975420cb9631bebf9d6c5a1734d
+   - Build ID: 18
+   - Change Set: 77963f91000b2b1db6b60d598c653a31c4709e2a
    
    Utility for the creation of JSON and GeoJSON from Oracle data types and
    structures.  Support for the deserialization of JSON is not implemented.
@@ -2091,21 +2091,21 @@ AS
       
    BEGIN
    
-      str_output := str_output || '[' || dz_json_util.prune_number(
+      str_output := str_output || '[' || json_format(dz_json_util.prune_number(
           p_input => p_input.x
          ,p_trunc => p_prune_number
-      ) || ',' || dz_json_util.prune_number(
+      )) || ',' || json_format(dz_json_util.prune_number(
           p_input => p_input.y
          ,p_trunc => p_prune_number
-      );
+      ));
                  
       IF p_input.z IS NOT NULL
       AND p_2d_flag = 'FALSE'
       THEN
-         str_output := str_output || ',' || dz_json_util.prune_number(
+         str_output := str_output || ',' || json_format(dz_json_util.prune_number(
              p_input => p_input.z
             ,p_trunc => p_prune_number
-         );
+         ));
          
       END IF;
       
@@ -2148,25 +2148,25 @@ AS
          
       END IF;
       
-      str_output := str_output || '[' || dz_json_util.prune_number(
+      str_output := str_output || '[' || json_format(dz_json_util.prune_number(
           p_input => p_input.SDO_ORDINATES(1)
          ,p_trunc => p_prune_number
-      ) || ',' || dz_json_util.prune_number(
+      )) || ',' || json_format(dz_json_util.prune_number(
           p_input => p_input.SDO_ORDINATES(2)
          ,p_trunc => p_prune_number
-      );
+      ));
       
       IF  int_dims > 2
       AND p_2d_flag = 'FALSE'
       THEN
-         str_output := str_output || ',' || dz_json_util.prune_number(p_input.SDO_ORDINATES(3),16);
+         str_output := str_output || ',' || json_format(dz_json_util.prune_number(p_input.SDO_ORDINATES(3),16));
          
       END IF;
       
       IF  int_dims > 3
       AND p_2d_flag = 'FALSE'
       THEN
-         str_output := str_output || ',' || dz_json_util.prune_number(p_input.SDO_ORDINATES(4),16);
+         str_output := str_output || ',' || json_format(dz_json_util.prune_number(p_input.SDO_ORDINATES(4),16));
          
       END IF;
       
@@ -2244,20 +2244,20 @@ AS
          WHILE int_counter <= int_stop
          LOOP
             clb_vertice := TO_CLOB(
-                '[' || dz_json_util.prune_number(
+                '[' || json_format(dz_json_util.prune_number(
                     p_input => p_input.SDO_ORDINATES(int_counter)
                    ,p_trunc => p_prune_number
                 )
-            );
+            ));
             
             int_counter := int_counter + 1;
             
             clb_vertice := clb_vertice || TO_CLOB(
-                ',' || dz_json_util.prune_number(
+                ',' || json_format(dz_json_util.prune_number(
                     p_input => p_input.SDO_ORDINATES(int_counter)
                    ,p_trunc => p_prune_number
                 )
-            );
+            ));
             
             int_counter := int_counter + 1;
 
@@ -2266,11 +2266,11 @@ AS
                IF p_2d_flag = 'FALSE'
                THEN
                   clb_vertice := clb_vertice || TO_CLOB(
-                      ',' || dz_json_util.prune_number(
+                      ',' || json_format(dz_json_util.prune_number(
                           p_input => p_input.SDO_ORDINATES(int_counter)
                          ,p_trunc => p_prune_number
                       )
-                  );
+                  ));
                   
                END IF;
                
@@ -2283,11 +2283,11 @@ AS
                IF p_2d_flag = 'FALSE'
                THEN
                   clb_vertice := clb_vertice || TO_CLOB(
-                      ',' || dz_json_util.prune_number(
+                      ',' || json_format(dz_json_util.prune_number(
                           p_input => p_input.SDO_ORDINATES(int_counter)
                          ,p_trunc => p_prune_number
                       )
-                  );
+                  ));
                   
                END IF;
                
@@ -2332,65 +2332,65 @@ AS
          
          IF int_dims = 2
          THEN
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(1)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(2)
                ,p_trunc => p_prune_number
-            ) || ']';
+            )) || ']';
             
             clb_output := clb_output || dz_json_util.pretty(
                 str_pad || clb_vertice
                ,p_pretty_print + 1
             );
             
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(3)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(2)
                ,p_trunc => p_prune_number
-            ) || ']';
+            )) || ']';
             
             clb_output := clb_output || dz_json_util.pretty(
                 ',' || clb_vertice
                ,p_pretty_print + 1
             );
             
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(3)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(4)
                ,p_trunc => p_prune_number
-            ) || ']';
+            )) || ']';
             
             clb_output := clb_output || dz_json_util.pretty(
                 ',' || clb_vertice
                ,p_pretty_print + 1
             );
             
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(1)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(4)
                ,p_trunc => p_prune_number
-            ) || ']';
+            )) || ']';
             
             clb_output := clb_output || dz_json_util.pretty(
                 ',' || clb_vertice
                ,p_pretty_print + 1
             );
             
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(1)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(2)
                ,p_trunc => p_prune_number
-            ) || ']';
+            )) || ']';
             
             clb_output := clb_output || dz_json_util.pretty(
                 ',' || clb_vertice
@@ -2399,20 +2399,20 @@ AS
   
          ELSIF int_dims = 3
          THEN
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(1)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(2)
                ,p_trunc => p_prune_number
-            );
+            ));
             
             IF p_2d_flag = 'FALSE'
             THEN
-               clb_vertice := clb_vertice || ',' || dz_json_util.prune_number(
+               clb_vertice := clb_vertice || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(3)
                   ,p_trunc => p_prune_number
-               );
+               ));
                
             END IF;
             
@@ -2423,20 +2423,20 @@ AS
                ,p_pretty_print + 1
             );
             
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(4)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(2)
                ,p_trunc => p_prune_number
-            );
+            ));
             
             IF p_2d_flag = 'FALSE'
             THEN
-               clb_vertice := clb_vertice || ',' || dz_json_util.prune_number(
+               clb_vertice := clb_vertice || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(3)
                   ,p_trunc => p_prune_number
-               );
+               ));
                
             END IF;
             
@@ -2447,20 +2447,20 @@ AS
                ,p_pretty_print + 1
             );
             
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(4)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(5)
                ,p_trunc => p_prune_number
-            );
+            ));
             
             IF p_2d_flag = 'FALSE'
             THEN
-               clb_vertice := clb_vertice || ',' || dz_json_util.prune_number(
+               clb_vertice := clb_vertice || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(6)
                   ,p_trunc => p_prune_number
-               );
+               ));
                
             END IF;
             
@@ -2471,20 +2471,20 @@ AS
                ,p_pretty_print + 1
             );
             
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(1)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(5)
                ,p_trunc => p_prune_number
-            );
+            ));
             
             IF p_2d_flag = 'FALSE'
             THEN
-               clb_vertice := clb_vertice || ',' || dz_json_util.prune_number(
+               clb_vertice := clb_vertice || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(6)
                   ,p_trunc => p_prune_number
-               );
+               ));
                
             END IF;
             
@@ -2495,20 +2495,20 @@ AS
                ,p_pretty_print + 1
             );
             
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(1)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(2)
                ,p_trunc => p_prune_number
-            );
+            ));
             
             IF p_2d_flag = 'FALSE'
             THEN
-               clb_vertice := clb_vertice || ',' || dz_json_util.prune_number(
+               clb_vertice := clb_vertice || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(3)
                   ,p_trunc => p_prune_number
-               );
+               ));
                
             END IF;
             
@@ -2521,23 +2521,23 @@ AS
             
          ELSIF int_dims = 4
          THEN
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(1)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(2)
                ,p_trunc => p_prune_number
-            );
+            ));
             
             IF p_2d_flag = 'FALSE'
             THEN
-               clb_vertice := clb_vertice || ',' || dz_json_util.prune_number(
+               clb_vertice := clb_vertice || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(3)
                   ,p_trunc => p_prune_number
-               ) || ',' || dz_json_util.prune_number(
+               )) || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(4)
                   ,p_trunc => p_prune_number
-               );
+               ));
                
             END IF;
             
@@ -2548,23 +2548,23 @@ AS
                ,p_pretty_print + 1
             );
             
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(5)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(2)
                ,p_trunc => p_prune_number
-            );
+            ));
             
             IF p_2d_flag = 'FALSE'
             THEN
-               clb_vertice := clb_vertice || ',' || dz_json_util.prune_number(
+               clb_vertice := clb_vertice || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(3)
                   ,p_trunc => p_prune_number
-               ) || ',' || dz_json_util.prune_number(
+               )) || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(4)
                   ,p_trunc => p_prune_number
-               );
+               ));
                
             END IF;
             
@@ -2575,23 +2575,23 @@ AS
                ,p_pretty_print + 1
             );
             
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(5)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(6)
                ,p_trunc => p_prune_number
-            );
+            ));
             
             IF p_2d_flag = 'FALSE'
             THEN
-               clb_vertice := clb_vertice || ',' || dz_json_util.prune_number(
+               clb_vertice := clb_vertice || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(7)
                   ,p_trunc => p_prune_number
-               ) || ',' || dz_json_util.prune_number(
+               )) || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(8)
                   ,p_trunc => p_prune_number
-               );
+               ));
                
             END IF;
             
@@ -2602,23 +2602,23 @@ AS
                ,p_pretty_print + 1
             );
             
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(1)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(6)
                ,p_trunc => p_prune_number
-            );
+            ));
             
             IF p_2d_flag = 'FALSE'
             THEN
-               clb_vertice := clb_vertice || ',' || dz_json_util.prune_number(
+               clb_vertice := clb_vertice || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(7)
                   ,p_trunc => p_prune_number
-               ) || ',' || dz_json_util.prune_number(
+               )) || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(8)
                   ,p_trunc => p_prune_number
-               );
+               ));
                
             END IF;
             
@@ -2629,23 +2629,23 @@ AS
                ,p_pretty_print + 1
             );
             
-            clb_vertice := '[' || dz_json_util.prune_number(
+            clb_vertice := '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(1)
                ,p_trunc => p_prune_number
-            ) || ',' || dz_json_util.prune_number(
+            )) || ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(2)
                ,p_trunc => p_prune_number
-            );
+            ));
             
             IF p_2d_flag = 'FALSE'
             THEN
-               clb_vertice := clb_vertice || ',' || dz_json_util.prune_number(
+               clb_vertice := clb_vertice || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(3)
                   ,p_trunc => p_prune_number
-               ) || ',' || dz_json_util.prune_number(
+               )) || ',' || json_format(dz_json_util.prune_number(
                    p_input => p_input.SDO_ORDINATES(4)
                   ,p_trunc => p_prune_number
-               );
+               ));
                
             END IF;
             
@@ -2967,19 +2967,19 @@ AS
       WHILE int_counter <= int_stop
       LOOP       
          clb_vertice := TO_CLOB(
-            '[' || dz_json_util.prune_number(
+            '[' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(int_counter)
                ,p_trunc => p_prune_number
             )
-         );
+         ));
          int_counter := int_counter + 1;
             
          clb_vertice  := clb_vertice || TO_CLOB(
-            ',' || dz_json_util.prune_number(
+            ',' || json_format(dz_json_util.prune_number(
                 p_input => p_input.SDO_ORDINATES(int_counter)
                ,p_trunc => p_prune_number
             )
-         );
+         ));
          int_counter := int_counter + 1;
 
          IF int_dims > 2
@@ -2987,10 +2987,10 @@ AS
             IF p_2d_flag = 'FALSE'
             THEN
                clb_vertice := clb_vertice || TO_CLOB(
-                  ',' || dz_json_util.prune_number(
+                  ',' || json_format(dz_json_util.prune_number(
                       p_input => p_input.SDO_ORDINATES(int_counter)
                      ,p_trunc => p_prune_number
-                  )
+                  ))
                );
                
             END IF;
@@ -3004,10 +3004,10 @@ AS
             IF p_2d_flag = 'FALSE'
             THEN
                clb_vertice := clb_vertice || TO_CLOB(
-                  ',' || dz_json_util.prune_number(
+                  ',' || json_format(dz_json_util.prune_number(
                       p_input => p_input.SDO_ORDINATES(int_counter)
                      ,p_trunc => p_prune_number
-                  )
+                  ))
                );
                
             END IF;
@@ -4026,22 +4026,22 @@ AS
       IF sdo_mbr_geom.get_gtype() = 3
       THEN
          RETURN '[' ||
-            dz_json_util.prune_number(
+            json_format(dz_json_util.prune_number(
                 p_input => sdo_mbr_geom.SDO_ORDINATES(1)
                ,p_trunc => p_prune_number
-            ) || ',' ||
-            dz_json_util.prune_number(
+            )) || ',' ||
+            json_format(dz_json_util.prune_number(
                 p_input => sdo_mbr_geom.SDO_ORDINATES(2)
                ,p_trunc => p_prune_number
-            ) || ',' ||
-            dz_json_util.prune_number(
+            )) || ',' ||
+            json_format(dz_json_util.prune_number(
                 p_input => sdo_mbr_geom.SDO_ORDINATES(3)
                ,p_trunc => p_prune_number
-            ) || ',' ||
-            dz_json_util.prune_number(
+            )) || ',' ||
+            json_format(dz_json_util.prune_number(
                 p_input => sdo_mbr_geom.SDO_ORDINATES(4)
                ,p_trunc => p_prune_number
-            ) ||
+            )) ||
          ']';
          
       ELSE
@@ -7488,10 +7488,10 @@ CREATE OR REPLACE PACKAGE dz_json_test
 AUTHID DEFINER
 AS
 
-   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '083803f928bab975420cb9631bebf9d6c5a1734d';
+   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '77963f91000b2b1db6b60d598c653a31c4709e2a';
    C_JENKINS_JOBNM CONSTANT VARCHAR2(255 Char) := 'DZ_JSON';
-   C_JENKINS_BUILD CONSTANT NUMBER := 16;
-   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '16';
+   C_JENKINS_BUILD CONSTANT NUMBER := 18;
+   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '18';
    
    C_PREREQUISITES CONSTANT MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY(
    );
