@@ -2329,6 +2329,12 @@ AS
             ,CHR(50057)
             ,'\u00C9'
          );
+         
+         str_output := REGEXP_REPLACE(
+             str_output
+            ,CHR(21)
+            ,'\u0015'
+         );
 
          IF p_quote_strings = 'FALSE'
          THEN
@@ -2468,6 +2474,12 @@ AS
             )
             ,CHR(50057)
             ,'\u00C9'
+         );
+         
+         clb_output := REGEXP_REPLACE(
+             clb_output
+            ,CHR(21)
+            ,'\u0015'
          );
 
          IF p_quote_strings = 'FALSE'
