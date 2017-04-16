@@ -2365,7 +2365,7 @@ AS
          RETURN 'null';
 
       ELSE
-         str_output := TO_CHAR(p_input);
+         str_output := TO_CHAR(p_input,'TM9','NLS_NUMERIC_CHARACTERS = ''.,''');
          
          IF SUBSTR(str_output,1,1) = '.'
          THEN

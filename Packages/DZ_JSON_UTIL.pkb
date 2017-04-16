@@ -701,10 +701,12 @@ AS
    AS
    BEGIN
       RETURN TO_CHAR(
-         prune_number(
+          prune_number(
              p_input => p_input
             ,p_trunc => p_trunc
          )
+         ,'TM9'
+         ,'NLS_NUMERIC_CHARACTERS = ''.,'''
       );
       
    END prune_number_varchar2;
@@ -718,7 +720,7 @@ AS
    AS
    BEGIN
       RETURN TO_CLOB(
-         prune_number(
+         prune_number_varchar2(
              p_input => p_input
             ,p_trunc => p_trunc
          )
