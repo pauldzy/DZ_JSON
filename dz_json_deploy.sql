@@ -1642,8 +1642,8 @@ AS
    /*
    header: DZ_JSON
      
-   - Build ID: 22
-   - Change Set: 2ee1532921f6c73b3397d561b96f6a16755db28a
+   - Build ID: 25
+   - Change Set: 40121050804bb18a455973994e7108ec8f6b54df
    
    Utility for the creation of JSON and GeoJSON from Oracle data types and
    structures.  Support for the deserialization of JSON is not implemented.
@@ -4319,7 +4319,23 @@ AS
          );
          
          str_output := REGEXP_REPLACE(
-             str_output
+             REGEXP_REPLACE(
+                REGEXP_REPLACE(
+                   REGEXP_REPLACE(
+                      REGEXP_REPLACE(
+                         str_output
+                        ,CHR(14844061)
+                        ,'\u201D'
+                      )
+                     ,CHR(14844060)
+                     ,'\u201C'
+                   )
+                  ,CHR(14844051)
+                  ,'\u2013'
+                )
+               ,CHR(14844057)
+               ,'\u2019'
+            )
             ,CHR(21)
             ,'\u0015'
          );
@@ -4465,7 +4481,23 @@ AS
          );
          
          clb_output := REGEXP_REPLACE(
-             clb_output
+             REGEXP_REPLACE(
+                REGEXP_REPLACE(
+                   REGEXP_REPLACE(
+                      REGEXP_REPLACE(
+                         clb_output
+                        ,CHR(14844061)
+                        ,'\u201D'
+                      )
+                     ,CHR(14844060)
+                     ,'\u201C'
+                   )
+                  ,CHR(14844051)
+                  ,'\u2013'
+                )
+               ,CHR(14844057)
+               ,'\u2019'
+            )
             ,CHR(21)
             ,'\u0015'
          );
@@ -7502,10 +7534,10 @@ CREATE OR REPLACE PACKAGE dz_json_test
 AUTHID DEFINER
 AS
 
-   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '2ee1532921f6c73b3397d561b96f6a16755db28a';
+   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '40121050804bb18a455973994e7108ec8f6b54df';
    C_JENKINS_JOBNM CONSTANT VARCHAR2(255 Char) := 'DZ_JSON';
-   C_JENKINS_BUILD CONSTANT NUMBER := 22;
-   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '22';
+   C_JENKINS_BUILD CONSTANT NUMBER := 25;
+   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '25';
    
    C_PREREQUISITES CONSTANT MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY(
    );
