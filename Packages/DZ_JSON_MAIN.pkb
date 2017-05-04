@@ -2331,7 +2331,23 @@ AS
          );
          
          str_output := REGEXP_REPLACE(
-             str_output
+             REGEXP_REPLACE(
+                REGEXP_REPLACE(
+                   REGEXP_REPLACE(
+                      REGEXP_REPLACE(
+                         str_output
+                        ,CHR(14844061)
+                        ,'\u201D'
+                      )
+                     ,CHR(14844060)
+                     ,'\u201C'
+                   )
+                  ,CHR(14844051)
+                  ,'\u2013'
+                )
+               ,CHR(14844057)
+               ,'\u2019'
+            )
             ,CHR(21)
             ,'\u0015'
          );
@@ -2477,7 +2493,23 @@ AS
          );
          
          clb_output := REGEXP_REPLACE(
-             clb_output
+             REGEXP_REPLACE(
+                REGEXP_REPLACE(
+                   REGEXP_REPLACE(
+                      REGEXP_REPLACE(
+                         clb_output
+                        ,CHR(14844061)
+                        ,'\u201D'
+                      )
+                     ,CHR(14844060)
+                     ,'\u201C'
+                   )
+                  ,CHR(14844051)
+                  ,'\u2013'
+                )
+               ,CHR(14844057)
+               ,'\u2019'
+            )
             ,CHR(21)
             ,'\u0015'
          );
