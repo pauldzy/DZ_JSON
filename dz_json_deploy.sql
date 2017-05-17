@@ -1642,8 +1642,8 @@ AS
    /*
    header: DZ_JSON
      
-   - Build ID: 25
-   - Change Set: 40121050804bb18a455973994e7108ec8f6b54df
+   - Build ID: 27
+   - Change Set: 5c689d47aca95bca4c68b03bd802db8b1b4b494e
    
    Utility for the creation of JSON and GeoJSON from Oracle data types and
    structures.  Support for the deserialization of JSON is not implemented.
@@ -4889,12 +4889,15 @@ PROMPT DZ_JSON_ELEMENT3.tps;
 CREATE OR REPLACE TYPE dz_json_element3 FORCE
 AUTHID CURRENT_USER
 AS OBJECT (
-    element_name     VARCHAR2(4000 Char)
-   ,element_string   VARCHAR2(4000 Char)
-   ,element_number   NUMBER
-   ,element_date     DATE
-   ,element_complex  CLOB
-   ,element_null     INTEGER
+    element_name       VARCHAR2(4000 Char)
+   ,element_string     VARCHAR2(4000 Char)
+   ,element_number     NUMBER
+   ,element_date       DATE
+   ,element_complex    CLOB
+   ,element_clob       CLOB
+   ,element_string_vry MDSYS.SDO_STRING2_ARRAY
+   ,element_number_vry MDSYS.SDO_NUMBER_ARRAY
+   ,element_null       INTEGER
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
@@ -5066,10 +5069,19 @@ AS
          
       END IF;
       
-      IF  self.element_string  IS NULL
-      AND self.element_number  IS NULL
-      AND self.element_date    IS NULL
-      AND self.element_complex IS NULL
+      IF  self.element_string     IS NULL
+      AND self.element_number     IS NULL
+      AND self.element_date       IS NULL
+      AND self.element_clob       IS NULL
+      AND self.element_complex    IS NULL
+      AND ( 
+         self.element_string_vry IS NULL
+         OR self.element_string_vry.COUNT = 0 
+      )
+      AND ( 
+         self.element_number_vry IS NULL
+         OR self.element_number_vry.COUNT = 0 
+      )
       THEN
          RETURN 'TRUE';
          
@@ -5085,7 +5097,10 @@ AS
       p_pretty_print     IN  NUMBER   DEFAULT NULL
    ) RETURN CLOB
    AS
+      clb_vry          CLOB;
       num_pretty_print NUMBER := p_pretty_print;
+      str_pad          VARCHAR2(1 Char);
+      str_init         VARCHAR2(1 Char);
       
    BEGIN
       
@@ -5139,9 +5154,95 @@ AS
          );
          
       END IF;
-   
+      
       --------------------------------------------------------------------------
       -- Step 60
+      -- String Array output
+      --------------------------------------------------------------------------
+      IF self.element_string_vry IS NOT NULL
+      THEN
+         IF num_pretty_print IS NULL
+         THEN
+            clb_vry := dz_json_util.pretty('[',NULL);
+            str_pad := '';
+            
+         ELSE
+            clb_vry := dz_json_util.pretty('[',-1);
+            str_pad := ' ';
+            
+         END IF;
+         str_init := str_pad;
+         
+         FOR i IN 1 .. self.element_string_vry.COUNT
+         LOOP
+            clb_vry := clb_vry || dz_json_util.pretty(
+                str_init || dz_json_main.json_format(self.element_string_vry(i))
+               ,num_pretty_print + 1
+            );
+            str_init := ',';
+           
+         END LOOP;
+         
+         clb_vry := clb_vry || dz_json_util.pretty(
+             ']'
+            ,num_pretty_print,NULL,NULL
+         );
+      
+         RETURN clb_vry;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 70
+      -- Number Array output
+      --------------------------------------------------------------------------
+      IF self.element_number_vry IS NOT NULL
+      THEN
+         IF num_pretty_print IS NULL
+         THEN
+            clb_vry := dz_json_util.pretty('[',NULL);
+            str_pad := '';
+            
+         ELSE
+            clb_vry := dz_json_util.pretty('[',-1);
+            str_pad := ' ';
+            
+         END IF;
+         str_init := str_pad;
+         
+         FOR i IN 1 .. self.element_number_vry.COUNT
+         LOOP
+            clb_vry := clb_vry || dz_json_util.pretty(
+                str_init || dz_json_main.json_format(self.element_number_vry(i))
+               ,num_pretty_print + 1
+            );
+            str_init := ',';
+           
+         END LOOP;
+         
+         clb_vry := clb_vry || dz_json_util.pretty(
+             ']'
+            ,num_pretty_print,NULL,NULL
+         );
+      
+         RETURN clb_vry;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 80
+      -- Clob output
+      --------------------------------------------------------------------------
+      IF self.element_clob IS NOT NULL
+      THEN
+         RETURN dz_json_main.json_format(
+             p_input        => self.element_clob
+         );
+         
+      END IF;
+   
+      --------------------------------------------------------------------------
+      -- Step 90
       -- Complex output
       --------------------------------------------------------------------------
       IF self.element_complex IS NOT NULL
@@ -5151,7 +5252,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 70
+      -- Step 100
       -- Element must be null
       --------------------------------------------------------------------------
       RETURN 'null';
@@ -5324,15 +5425,18 @@ PROMPT DZ_JSON_ELEMENT2.tps;
 CREATE OR REPLACE TYPE dz_json_element2 FORCE
 AUTHID CURRENT_USER
 AS OBJECT (
-    element_name     VARCHAR2(4000 Char)
-   ,element_string   VARCHAR2(4000 Char)
-   ,element_number   NUMBER
-   ,element_date     DATE
-   ,element_complex  CLOB
-   ,element_null     INTEGER
-   ,element_obj      dz_json_element3_obj
-   ,element_vry      dz_json_element3_vry
-   ,element_obj_vry  dz_json_element3_obj_vry
+    element_name       VARCHAR2(4000 Char)
+   ,element_string     VARCHAR2(4000 Char)
+   ,element_number     NUMBER
+   ,element_date       DATE
+   ,element_complex    CLOB
+   ,element_clob       CLOB
+   ,element_string_vry MDSYS.SDO_STRING2_ARRAY
+   ,element_number_vry MDSYS.SDO_NUMBER_ARRAY
+   ,element_null       INTEGER
+   ,element_obj        dz_json_element3_obj
+   ,element_vry        dz_json_element3_vry
+   ,element_obj_vry    dz_json_element3_obj_vry
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
@@ -5358,6 +5462,27 @@ AS OBJECT (
    ,CONSTRUCTOR FUNCTION dz_json_element2(
        p_name                IN  VARCHAR2
       ,p_element_date        IN  DATE
+   ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element2(
+       p_name                IN  VARCHAR2
+      ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+   ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element2(
+       p_name                IN  VARCHAR2
+      ,p_element_number_vry  IN  MDSYS.SDO_NUMBER_ARRAY
+   ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element2(
+       p_name                IN  VARCHAR2
+      ,p_element_clob        IN  CLOB
    ) RETURN SELF AS RESULT
     
    -----------------------------------------------------------------------------
@@ -5429,6 +5554,7 @@ AS
    ) RETURN SELF AS RESULT
    AS
    BEGIN
+   
       IF p_element_string IS NULL
       THEN
          self.element_null := 1;
@@ -5481,6 +5607,76 @@ AS
          
       ELSE
          self.element_date := p_element_date;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element2;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element2(
+       p_name                IN  VARCHAR2
+      ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_string_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_string_vry := p_element_string_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element2;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element2(
+       p_name                IN  VARCHAR2
+      ,p_element_number_vry  IN  MDSYS.SDO_NUMBER_ARRAY
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_number_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_number_vry := p_element_number_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element2;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element2(
+       p_name               IN  VARCHAR2
+      ,p_element_clob       IN  CLOB
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+   
+      IF p_element_clob IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_clob := p_element_clob;
          
       END IF;
       
@@ -5594,11 +5790,12 @@ AS
          
       END IF;
       
-      IF  self.element_string  IS NULL
-      AND self.element_number  IS NULL
-      AND self.element_date    IS NULL
-      AND self.element_complex IS NULL
-      AND self.element_obj     IS NULL
+      IF  self.element_string     IS NULL
+      AND self.element_number     IS NULL
+      AND self.element_date       IS NULL
+      AND self.element_clob       IS NULL
+      AND self.element_complex    IS NULL
+      AND self.element_obj        IS NULL
       AND ( 
          self.element_vry IS NULL
          OR self.element_vry.COUNT = 0 
@@ -5606,6 +5803,14 @@ AS
       AND ( 
          self.element_obj_vry IS NULL
          OR self.element_obj_vry.COUNT = 0 
+      )
+      AND ( 
+         self.element_string_vry IS NULL
+         OR self.element_string_vry.COUNT = 0 
+      )
+      AND ( 
+         self.element_number_vry IS NULL
+         OR self.element_number_vry.COUNT = 0 
       )
       THEN
          RETURN 'TRUE';
@@ -5679,9 +5884,95 @@ AS
          );
          
       END IF;
-   
+      
       --------------------------------------------------------------------------
       -- Step 60
+      -- String Array output
+      --------------------------------------------------------------------------
+      IF self.element_string_vry IS NOT NULL
+      THEN
+         IF num_pretty_print IS NULL
+         THEN
+            clb_vry := dz_json_util.pretty('[',NULL);
+            str_pad := '';
+            
+         ELSE
+            clb_vry := dz_json_util.pretty('[',-1);
+            str_pad := ' ';
+            
+         END IF;
+         str_init := str_pad;
+         
+         FOR i IN 1 .. self.element_string_vry.COUNT
+         LOOP
+            clb_vry := clb_vry || dz_json_util.pretty(
+                str_init || dz_json_main.json_format(self.element_string_vry(i))
+               ,num_pretty_print + 1
+            );
+            str_init := ',';
+           
+         END LOOP;
+         
+         clb_vry := clb_vry || dz_json_util.pretty(
+             ']'
+            ,num_pretty_print,NULL,NULL
+         );
+      
+         RETURN clb_vry;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 70
+      -- Number Array output
+      --------------------------------------------------------------------------
+      IF self.element_number_vry IS NOT NULL
+      THEN
+         IF num_pretty_print IS NULL
+         THEN
+            clb_vry := dz_json_util.pretty('[',NULL);
+            str_pad := '';
+            
+         ELSE
+            clb_vry := dz_json_util.pretty('[',-1);
+            str_pad := ' ';
+            
+         END IF;
+         str_init := str_pad;
+         
+         FOR i IN 1 .. self.element_number_vry.COUNT
+         LOOP
+            clb_vry := clb_vry || dz_json_util.pretty(
+                str_init || dz_json_main.json_format(self.element_number_vry(i))
+               ,num_pretty_print + 1
+            );
+            str_init := ',';
+           
+         END LOOP;
+         
+         clb_vry := clb_vry || dz_json_util.pretty(
+             ']'
+            ,num_pretty_print,NULL,NULL
+         );
+      
+         RETURN clb_vry;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 80
+      -- Clob output
+      --------------------------------------------------------------------------
+      IF self.element_clob IS NOT NULL
+      THEN
+         RETURN dz_json_main.json_format(
+             p_input        => self.element_clob
+         );
+         
+      END IF;
+   
+      --------------------------------------------------------------------------
+      -- Step 90
       -- Complex output
       --------------------------------------------------------------------------
       IF self.element_complex IS NOT NULL
@@ -5691,7 +5982,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 70
+      -- Step 100
       -- Subobject output
       --------------------------------------------------------------------------
       IF self.element_obj IS NOT NULL
@@ -5703,7 +5994,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 80
+      -- Step 110
       -- Subobject output
       --------------------------------------------------------------------------
       IF self.element_vry IS NOT NULL
@@ -5742,7 +6033,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 90
+      -- Step 120
       -- Subobject output
       --------------------------------------------------------------------------
       IF self.element_obj_vry IS NOT NULL
@@ -5781,7 +6072,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 100
+      -- Step 130
       -- Element must be null
       --------------------------------------------------------------------------
       RETURN 'null';
@@ -5954,15 +6245,18 @@ PROMPT DZ_JSON_ELEMENT1.tps;
 CREATE OR REPLACE TYPE dz_json_element1 FORCE
 AUTHID CURRENT_USER
 AS OBJECT (
-    element_name     VARCHAR2(4000 Char)
-   ,element_string   VARCHAR2(4000 Char)
-   ,element_number   NUMBER
-   ,element_date     DATE
-   ,element_complex  CLOB
-   ,element_null     INTEGER
-   ,element_obj      dz_json_element2_obj
-   ,element_vry      dz_json_element2_vry
-   ,element_obj_vry  dz_json_element2_obj_vry
+    element_name       VARCHAR2(4000 Char)
+   ,element_string     VARCHAR2(4000 Char)
+   ,element_number     NUMBER
+   ,element_date       DATE
+   ,element_complex    CLOB
+   ,element_clob       CLOB
+   ,element_string_vry MDSYS.SDO_STRING2_ARRAY
+   ,element_number_vry MDSYS.SDO_NUMBER_ARRAY
+   ,element_null       INTEGER
+   ,element_obj        dz_json_element2_obj
+   ,element_vry        dz_json_element2_vry
+   ,element_obj_vry    dz_json_element2_obj_vry
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
@@ -5988,6 +6282,13 @@ AS OBJECT (
    ,CONSTRUCTOR FUNCTION dz_json_element1(
        p_name                IN  VARCHAR2
       ,p_element_date        IN  DATE
+   ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name                IN  VARCHAR2
+      ,p_element_clob        IN  VARCHAR2
    ) RETURN SELF AS RESULT
     
    -----------------------------------------------------------------------------
@@ -6225,11 +6526,12 @@ AS
          
       END IF;
       
-      IF  self.element_string  IS NULL
-      AND self.element_number  IS NULL
-      AND self.element_date    IS NULL
-      AND self.element_complex IS NULL
-      AND self.element_obj     IS NULL
+      IF  self.element_string     IS NULL
+      AND self.element_number     IS NULL
+      AND self.element_date       IS NULL
+      AND self.element_complex    IS NULL
+      AND self.element_clob       IS NULL
+      AND self.element_obj        IS NULL
       AND ( 
          self.element_vry IS NULL
          OR self.element_vry.COUNT = 0 
@@ -6237,6 +6539,14 @@ AS
       AND ( 
          self.element_obj_vry IS NULL
          OR self.element_obj_vry.COUNT = 0 
+      )
+      AND ( 
+         self.element_string_vry IS NULL
+         OR self.element_string_vry.COUNT = 0 
+      )
+      AND ( 
+         self.element_number_vry IS NULL
+         OR self.element_number_vry.COUNT = 0 
       )
       THEN
          RETURN 'TRUE';
@@ -6310,9 +6620,95 @@ AS
          );
          
       END IF;
-   
+      
       --------------------------------------------------------------------------
       -- Step 60
+      -- String Array output
+      --------------------------------------------------------------------------
+      IF self.element_string_vry IS NOT NULL
+      THEN
+         IF num_pretty_print IS NULL
+         THEN
+            clb_vry := dz_json_util.pretty('[',NULL);
+            str_pad := '';
+            
+         ELSE
+            clb_vry := dz_json_util.pretty('[',-1);
+            str_pad := ' ';
+            
+         END IF;
+         str_init := str_pad;
+         
+         FOR i IN 1 .. self.element_string_vry.COUNT
+         LOOP
+            clb_vry := clb_vry || dz_json_util.pretty(
+                str_init || dz_json_main.json_format(self.element_string_vry(i))
+               ,num_pretty_print + 1
+            );
+            str_init := ',';
+           
+         END LOOP;
+         
+         clb_vry := clb_vry || dz_json_util.pretty(
+             ']'
+            ,num_pretty_print,NULL,NULL
+         );
+      
+         RETURN clb_vry;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 70
+      -- Number Array output
+      --------------------------------------------------------------------------
+      IF self.element_number_vry IS NOT NULL
+      THEN
+         IF num_pretty_print IS NULL
+         THEN
+            clb_vry := dz_json_util.pretty('[',NULL);
+            str_pad := '';
+            
+         ELSE
+            clb_vry := dz_json_util.pretty('[',-1);
+            str_pad := ' ';
+            
+         END IF;
+         str_init := str_pad;
+         
+         FOR i IN 1 .. self.element_number_vry.COUNT
+         LOOP
+            clb_vry := clb_vry || dz_json_util.pretty(
+                str_init || dz_json_main.json_format(self.element_number_vry(i))
+               ,num_pretty_print + 1
+            );
+            str_init := ',';
+           
+         END LOOP;
+         
+         clb_vry := clb_vry || dz_json_util.pretty(
+             ']'
+            ,num_pretty_print,NULL,NULL
+         );
+      
+         RETURN clb_vry;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 80
+      -- Clob output
+      --------------------------------------------------------------------------
+      IF self.element_clob IS NOT NULL
+      THEN
+         RETURN dz_json_main.json_format(
+             p_input        => self.element_clob
+         );
+         
+      END IF;
+   
+      --------------------------------------------------------------------------
+      -- Step 90
       -- Complex output
       --------------------------------------------------------------------------
       IF self.element_complex IS NOT NULL
@@ -6322,7 +6718,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 70
+      -- Step 100
       -- Subobject output
       --------------------------------------------------------------------------
       IF self.element_obj IS NOT NULL
@@ -6334,7 +6730,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 80
+      -- Step 110
       -- Subobject output
       --------------------------------------------------------------------------
       IF self.element_vry IS NOT NULL
@@ -6373,7 +6769,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 90
+      -- Step 120
       -- Subobject output
       --------------------------------------------------------------------------
       IF self.element_obj_vry IS NOT NULL
@@ -6412,7 +6808,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 100
+      -- Step 130
       -- Element must be null
       --------------------------------------------------------------------------
       RETURN 'null';
@@ -7534,10 +7930,10 @@ CREATE OR REPLACE PACKAGE dz_json_test
 AUTHID DEFINER
 AS
 
-   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '40121050804bb18a455973994e7108ec8f6b54df';
+   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '5c689d47aca95bca4c68b03bd802db8b1b4b494e';
    C_JENKINS_JOBNM CONSTANT VARCHAR2(255 Char) := 'DZ_JSON';
-   C_JENKINS_BUILD CONSTANT NUMBER := 25;
-   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '25';
+   C_JENKINS_BUILD CONSTANT NUMBER := 27;
+   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '27';
    
    C_PREREQUISITES CONSTANT MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY(
    );
