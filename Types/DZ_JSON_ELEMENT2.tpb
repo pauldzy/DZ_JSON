@@ -19,6 +19,7 @@ AS
    ) RETURN SELF AS RESULT
    AS
    BEGIN
+   
       IF p_element_string IS NULL
       THEN
          self.element_null := 1;
@@ -71,6 +72,76 @@ AS
          
       ELSE
          self.element_date := p_element_date;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element2;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element2(
+       p_name                IN  VARCHAR2
+      ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_string_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_string_vry := p_element_string_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element2;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element2(
+       p_name                IN  VARCHAR2
+      ,p_element_number_vry  IN  MDSYS.SDO_NUMBER_ARRAY
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_number_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_number_vry := p_element_number_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element2;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element2(
+       p_name               IN  VARCHAR2
+      ,p_element_clob       IN  CLOB
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+   
+      IF p_element_clob IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_clob := p_element_clob;
          
       END IF;
       
@@ -184,11 +255,12 @@ AS
          
       END IF;
       
-      IF  self.element_string  IS NULL
-      AND self.element_number  IS NULL
-      AND self.element_date    IS NULL
-      AND self.element_complex IS NULL
-      AND self.element_obj     IS NULL
+      IF  self.element_string     IS NULL
+      AND self.element_number     IS NULL
+      AND self.element_date       IS NULL
+      AND self.element_clob       IS NULL
+      AND self.element_complex    IS NULL
+      AND self.element_obj        IS NULL
       AND ( 
          self.element_vry IS NULL
          OR self.element_vry.COUNT = 0 
@@ -196,6 +268,14 @@ AS
       AND ( 
          self.element_obj_vry IS NULL
          OR self.element_obj_vry.COUNT = 0 
+      )
+      AND ( 
+         self.element_string_vry IS NULL
+         OR self.element_string_vry.COUNT = 0 
+      )
+      AND ( 
+         self.element_number_vry IS NULL
+         OR self.element_number_vry.COUNT = 0 
       )
       THEN
          RETURN 'TRUE';
@@ -269,9 +349,95 @@ AS
          );
          
       END IF;
-   
+      
       --------------------------------------------------------------------------
       -- Step 60
+      -- String Array output
+      --------------------------------------------------------------------------
+      IF self.element_string_vry IS NOT NULL
+      THEN
+         IF num_pretty_print IS NULL
+         THEN
+            clb_vry := dz_json_util.pretty('[',NULL);
+            str_pad := '';
+            
+         ELSE
+            clb_vry := dz_json_util.pretty('[',-1);
+            str_pad := ' ';
+            
+         END IF;
+         str_init := str_pad;
+         
+         FOR i IN 1 .. self.element_string_vry.COUNT
+         LOOP
+            clb_vry := clb_vry || dz_json_util.pretty(
+                str_init || dz_json_main.json_format(self.element_string_vry(i))
+               ,num_pretty_print + 1
+            );
+            str_init := ',';
+           
+         END LOOP;
+         
+         clb_vry := clb_vry || dz_json_util.pretty(
+             ']'
+            ,num_pretty_print,NULL,NULL
+         );
+      
+         RETURN clb_vry;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 70
+      -- Number Array output
+      --------------------------------------------------------------------------
+      IF self.element_number_vry IS NOT NULL
+      THEN
+         IF num_pretty_print IS NULL
+         THEN
+            clb_vry := dz_json_util.pretty('[',NULL);
+            str_pad := '';
+            
+         ELSE
+            clb_vry := dz_json_util.pretty('[',-1);
+            str_pad := ' ';
+            
+         END IF;
+         str_init := str_pad;
+         
+         FOR i IN 1 .. self.element_number_vry.COUNT
+         LOOP
+            clb_vry := clb_vry || dz_json_util.pretty(
+                str_init || dz_json_main.json_format(self.element_number_vry(i))
+               ,num_pretty_print + 1
+            );
+            str_init := ',';
+           
+         END LOOP;
+         
+         clb_vry := clb_vry || dz_json_util.pretty(
+             ']'
+            ,num_pretty_print,NULL,NULL
+         );
+      
+         RETURN clb_vry;
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 80
+      -- Clob output
+      --------------------------------------------------------------------------
+      IF self.element_clob IS NOT NULL
+      THEN
+         RETURN dz_json_main.json_format(
+             p_input        => self.element_clob
+         );
+         
+      END IF;
+   
+      --------------------------------------------------------------------------
+      -- Step 90
       -- Complex output
       --------------------------------------------------------------------------
       IF self.element_complex IS NOT NULL
@@ -281,7 +447,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 70
+      -- Step 100
       -- Subobject output
       --------------------------------------------------------------------------
       IF self.element_obj IS NOT NULL
@@ -293,7 +459,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 80
+      -- Step 110
       -- Subobject output
       --------------------------------------------------------------------------
       IF self.element_vry IS NOT NULL
@@ -332,7 +498,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 90
+      -- Step 120
       -- Subobject output
       --------------------------------------------------------------------------
       IF self.element_obj_vry IS NOT NULL
@@ -371,7 +537,7 @@ AS
       END IF;
       
       --------------------------------------------------------------------------
-      -- Step 100
+      -- Step 130
       -- Element must be null
       --------------------------------------------------------------------------
       RETURN 'null';
