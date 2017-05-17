@@ -44,7 +44,21 @@ AS OBJECT (
    -----------------------------------------------------------------------------
    ,CONSTRUCTOR FUNCTION dz_json_element1(
        p_name                IN  VARCHAR2
-      ,p_element_clob        IN  VARCHAR2
+      ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+   ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name                IN  VARCHAR2
+      ,p_element_number_vry  IN  MDSYS.SDO_NUMBER_ARRAY
+   ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name                IN  VARCHAR2
+      ,p_element_clob        IN  CLOB
    ) RETURN SELF AS RESULT
     
    -----------------------------------------------------------------------------

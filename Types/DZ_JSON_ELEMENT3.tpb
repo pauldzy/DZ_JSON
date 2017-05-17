@@ -83,6 +83,76 @@ AS
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    CONSTRUCTOR FUNCTION dz_json_element3(
+       p_name                IN  VARCHAR2
+      ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_string_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_string_vry := p_element_string_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element3;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element3(
+       p_name                IN  VARCHAR2
+      ,p_element_number_vry  IN  MDSYS.SDO_NUMBER_ARRAY
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_number_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_number_vry := p_element_number_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element3;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element3(
+       p_name               IN  VARCHAR2
+      ,p_element_clob       IN  CLOB
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+   
+      IF p_element_clob IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_clob := p_element_clob;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element3;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element3(
        p_name               IN  VARCHAR2
       ,p_element_complex    IN  CLOB
    ) RETURN SELF AS RESULT
