@@ -1642,8 +1642,8 @@ AS
    /*
    header: DZ_JSON
      
-   - Build ID: 27
-   - Change Set: 5c689d47aca95bca4c68b03bd802db8b1b4b494e
+   - Build ID: 29
+   - Change Set: 7e2034a4987dab87f11c4f8c3d7931f09ffe71be
    
    Utility for the creation of JSON and GeoJSON from Oracle data types and
    structures.  Support for the deserialization of JSON is not implemented.
@@ -4924,6 +4924,27 @@ AS OBJECT (
        p_name                IN  VARCHAR2
       ,p_element_date        IN  DATE
    ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element3(
+       p_name                IN  VARCHAR2
+      ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+   ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element3(
+       p_name                IN  VARCHAR2
+      ,p_element_number_vry  IN  MDSYS.SDO_NUMBER_ARRAY
+   ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element3(
+       p_name                IN  VARCHAR2
+      ,p_element_clob        IN  CLOB
+   ) RETURN SELF AS RESULT
     
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
@@ -5025,6 +5046,76 @@ AS
          
       ELSE
          self.element_date := p_element_date;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element3;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element3(
+       p_name                IN  VARCHAR2
+      ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_string_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_string_vry := p_element_string_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element3;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element3(
+       p_name                IN  VARCHAR2
+      ,p_element_number_vry  IN  MDSYS.SDO_NUMBER_ARRAY
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_number_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_number_vry := p_element_number_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element3;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element3(
+       p_name               IN  VARCHAR2
+      ,p_element_clob       IN  CLOB
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+   
+      IF p_element_clob IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_clob := p_element_clob;
          
       END IF;
       
@@ -6288,7 +6379,21 @@ AS OBJECT (
    -----------------------------------------------------------------------------
    ,CONSTRUCTOR FUNCTION dz_json_element1(
        p_name                IN  VARCHAR2
-      ,p_element_clob        IN  VARCHAR2
+      ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+   ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name                IN  VARCHAR2
+      ,p_element_number_vry  IN  MDSYS.SDO_NUMBER_ARRAY
+   ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name                IN  VARCHAR2
+      ,p_element_clob        IN  CLOB
    ) RETURN SELF AS RESULT
     
    -----------------------------------------------------------------------------
@@ -6413,6 +6518,76 @@ AS
          
       ELSE
          self.element_date := p_element_date;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element1;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name                IN  VARCHAR2
+      ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_string_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_string_vry := p_element_string_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element1;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name                IN  VARCHAR2
+      ,p_element_number_vry  IN  MDSYS.SDO_NUMBER_ARRAY
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_element_number_vry IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_number_vry := p_element_number_vry;
+         
+      END IF;
+      
+      self.element_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_element1;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_element1(
+       p_name               IN  VARCHAR2
+      ,p_element_clob       IN  CLOB
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+   
+      IF p_element_clob IS NULL
+      THEN
+         self.element_null := 1;
+         
+      ELSE
+         self.element_clob := p_element_clob;
          
       END IF;
       
@@ -7930,10 +8105,10 @@ CREATE OR REPLACE PACKAGE dz_json_test
 AUTHID DEFINER
 AS
 
-   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '5c689d47aca95bca4c68b03bd802db8b1b4b494e';
+   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '7e2034a4987dab87f11c4f8c3d7931f09ffe71be';
    C_JENKINS_JOBNM CONSTANT VARCHAR2(255 Char) := 'DZ_JSON';
-   C_JENKINS_BUILD CONSTANT NUMBER := 27;
-   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '27';
+   C_JENKINS_BUILD CONSTANT NUMBER := 29;
+   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '29';
    
    C_PREREQUISITES CONSTANT MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY(
    );
