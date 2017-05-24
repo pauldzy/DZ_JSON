@@ -2310,7 +2310,23 @@ AS
                     REGEXP_REPLACE(
                         REGEXP_REPLACE(
                            REGEXP_REPLACE(
-                              REGEXP_REPLACE(str_output,CHR(50099),'\u00F3')
+                              REGEXP_REPLACE(
+                                 REGEXP_REPLACE(
+                                    REGEXP_REPLACE(
+                                       REGEXP_REPLACE(
+                                           str_output
+                                          ,CHR(49843)
+                                          ,'\u00B3'
+                                       )
+                                       ,CHR(49842)
+                                       ,'\u00B2'
+                                    )
+                                    ,CHR(49840)
+                                    ,'\u00B0'
+                                  )
+                                 ,CHR(50099)
+                                 ,'\u00F3'
+                              )
                              ,CHR(50097)
                              ,'\u00D1'
                            )
@@ -2472,7 +2488,23 @@ AS
                     REGEXP_REPLACE(
                         REGEXP_REPLACE(
                            REGEXP_REPLACE(
-                              REGEXP_REPLACE(clb_output,CHR(50099),'\u00F3')
+                              REGEXP_REPLACE(
+                                 REGEXP_REPLACE(
+                                    REGEXP_REPLACE(
+                                        REGEXP_REPLACE(
+                                           clb_output
+                                          ,CHR(49843)
+                                          ,'\u00B3'
+                                       )
+                                       ,CHR(49842)
+                                       ,'\u00B2'
+                                    )
+                                    ,CHR(49840)
+                                    ,'\u00B0'
+                                  )
+                                 ,CHR(50099)
+                                 ,'\u00F3'
+                              )
                              ,CHR(50097)
                              ,'\u00D1'
                            )
