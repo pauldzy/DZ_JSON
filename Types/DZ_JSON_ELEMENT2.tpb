@@ -86,15 +86,79 @@ AS
    CONSTRUCTOR FUNCTION dz_json_element2(
        p_name                IN  VARCHAR2
       ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+      ,p_unique_flag         IN  VARCHAR2 DEFAULT 'FALSE'
    ) RETURN SELF AS RESULT
    AS
+      FUNCTION remove_dups(
+         p_input IN MDSYS.SDO_STRING2_ARRAY
+      ) RETURN MDSYS.SDO_STRING2_ARRAY
+      AS
+         ary_output  MDSYS.SDO_STRING2_ARRAY;
+         boo_hit     BOOLEAN;
+         int_counter PLS_INTEGER;
+         
+      BEGIN
+      
+         IF p_input IS NULL
+         THEN
+            RETURN NULL;
+         
+         END IF;
+         
+         IF p_input.COUNT IN (0,1)
+         THEN
+            RETURN p_input;
+            
+         END IF;
+         
+         ary_output := MDSYS.SDO_STRING2_ARRAY();
+         ary_output.EXTEND();
+         ary_output(1) := p_input(1);
+         
+         int_counter := 2;
+         FOR i IN 2 .. p_input.COUNT
+         LOOP
+            boo_hit := FALSE;
+            <<inner_loop>>
+            FOR j IN 1 .. ary_output.COUNT
+            LOOP
+               IF p_input(i) = ary_output(j)
+               THEN
+                  boo_hit := TRUE;
+                  EXIT inner_loop;
+                  
+               END IF;
+            
+            END LOOP;
+            
+            IF NOT boo_hit
+            THEN
+               ary_output.EXTEND();
+               ary_output(int_counter) := p_input(i);
+               int_counter := int_counter + 1;
+            
+            END IF;
+            
+         END LOOP;
+         
+         RETURN ary_output;
+
+      END remove_dups;
+      
    BEGIN
       IF p_element_string_vry IS NULL
       THEN
          self.element_null := 1;
          
       ELSE
-         self.element_string_vry := p_element_string_vry;
+         IF UPPER(p_unique_flag) = 'TRUE'
+         THEN
+            self.element_string_vry := remove_dups(p_element_string_vry);
+         
+         ELSE
+            self.element_string_vry := p_element_string_vry;
+         
+         END IF;
          
       END IF;
       

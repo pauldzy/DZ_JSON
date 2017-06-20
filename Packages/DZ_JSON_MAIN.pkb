@@ -2328,6 +2328,7 @@ AS
          str_output := REGEXP_REPLACE(str_output,UNISTR('\201D'),'\u201D');
          str_output := REGEXP_REPLACE(str_output,UNISTR('\201F'),'\u201F');
          str_output := REGEXP_REPLACE(str_output,UNISTR('\2022'),'\u2022');
+         str_output := REGEXP_REPLACE(str_output,UNISTR('\20AC'),'\u20AC');
          str_output := REGEXP_REPLACE(str_output,UNISTR('\2122'),'\u2122');
 
          IF p_quote_strings = 'FALSE'
@@ -2468,6 +2469,7 @@ AS
          clb_output := REGEXP_REPLACE(clb_output,UNISTR('\201D'),'\u201D');
          clb_output := REGEXP_REPLACE(clb_output,UNISTR('\201F'),'\u201F');
          clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2022'),'\u2022');
+         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\20AC'),'\u20AC');
          clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2122'),'\u2122');
 
          IF p_quote_strings = 'FALSE'

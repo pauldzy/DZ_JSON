@@ -3,6 +3,26 @@ AS
 
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
+   FUNCTION get_guid
+   RETURN VARCHAR2
+   AS
+      str_sysguid VARCHAR2(40 Char);
+      
+   BEGIN
+   
+      str_sysguid := UPPER(RAWTOHEX(SYS_GUID()));
+      
+      RETURN '{' 
+         || SUBSTR(str_sysguid,1,8)  || '-'
+         || SUBSTR(str_sysguid,9,4)  || '-'
+         || SUBSTR(str_sysguid,13,4) || '-'
+         || SUBSTR(str_sysguid,17,4) || '-'
+         || SUBSTR(str_sysguid,21,12)|| '}';
+   
+   END get_guid;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
    FUNCTION gz_split(
        p_str              IN  VARCHAR2
       ,p_regex            IN  VARCHAR2

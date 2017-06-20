@@ -45,6 +45,7 @@ AS OBJECT (
    ,CONSTRUCTOR FUNCTION dz_json_element2(
        p_name                IN  VARCHAR2
       ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+      ,p_unique_flag         IN  VARCHAR2 DEFAULT 'FALSE'
    ) RETURN SELF AS RESULT
    
    -----------------------------------------------------------------------------
