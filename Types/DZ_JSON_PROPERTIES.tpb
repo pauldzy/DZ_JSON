@@ -38,6 +38,29 @@ AS
    -----------------------------------------------------------------------------
    CONSTRUCTOR FUNCTION dz_json_properties(
        p_name               IN  VARCHAR2
+      ,p_properties_clob    IN  CLOB
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_properties_clob IS NULL
+      THEN
+         self.properties_null := 1;
+         
+      ELSE
+         self.properties_clob := p_properties_clob;
+         
+      END IF;
+      
+      self.properties_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_properties;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_properties(
+       p_name               IN  VARCHAR2
       ,p_properties_number  IN  NUMBER
    ) RETURN SELF AS RESULT
    AS
@@ -139,6 +162,7 @@ AS
       END IF;
       
       IF  self.properties_string  IS NULL
+      AND self.properties_clob    IS NULL
       AND self.properties_number  IS NULL
       AND self.properties_date    IS NULL
       AND self.properties_complex IS NULL
@@ -184,7 +208,19 @@ AS
       IF self.properties_string IS NOT NULL
       THEN
          RETURN dz_json_main.json_format(
-             p_input        => self.properties_string
+            p_input        => self.properties_string
+         );
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 30
+      -- Clob output
+      --------------------------------------------------------------------------
+      IF self.properties_clob IS NOT NULL
+      THEN
+         RETURN dz_json_main.json_format(
+            p_input        => self.properties_clob
          );
          
       END IF;
@@ -196,7 +232,7 @@ AS
       IF self.properties_number IS NOT NULL
       THEN
          RETURN dz_json_main.json_format(
-             p_input        => self.properties_number
+            p_input        => self.properties_number
          );
          
       END IF;
@@ -208,7 +244,7 @@ AS
       IF self.properties_date IS NOT NULL
       THEN
          RETURN dz_json_main.json_format(
-             p_input        => self.properties_date
+            p_input        => self.properties_date
          );
          
       END IF;
