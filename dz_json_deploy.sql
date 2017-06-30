@@ -12,6 +12,11 @@ PROMPT DZ_JSON_UTIL.pks;
 CREATE OR REPLACE PACKAGE dz_json_util
 AUTHID CURRENT_USER
 AS
+
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   FUNCTION get_guid
+   RETURN VARCHAR2;
    
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
@@ -187,6 +192,26 @@ PROMPT DZ_JSON_UTIL.pkb;
 CREATE OR REPLACE PACKAGE BODY dz_json_util
 AS
 
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   FUNCTION get_guid
+   RETURN VARCHAR2
+   AS
+      str_sysguid VARCHAR2(40 Char);
+      
+   BEGIN
+   
+      str_sysguid := UPPER(RAWTOHEX(SYS_GUID()));
+      
+      RETURN '{' 
+         || SUBSTR(str_sysguid,1,8)  || '-'
+         || SUBSTR(str_sysguid,9,4)  || '-'
+         || SUBSTR(str_sysguid,13,4) || '-'
+         || SUBSTR(str_sysguid,17,4) || '-'
+         || SUBSTR(str_sysguid,21,12)|| '}';
+   
+   END get_guid;
+   
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    FUNCTION gz_split(
@@ -1642,8 +1667,8 @@ AS
    /*
    header: DZ_JSON
      
-   - Build ID: 33
-   - Change Set: 213cb0707d9933af249bd4227e3bc37e248a89ca
+   - Build ID: 37
+   - Change Set: 34d20bf89b8269ad25851e24544c58537d74501c
    
    Utility for the creation of JSON and GeoJSON from Oracle data types and
    structures.  Support for the deserialization of JSON is not implemented.
@@ -4316,6 +4341,7 @@ AS
          str_output := REGEXP_REPLACE(str_output,UNISTR('\201D'),'\u201D');
          str_output := REGEXP_REPLACE(str_output,UNISTR('\201F'),'\u201F');
          str_output := REGEXP_REPLACE(str_output,UNISTR('\2022'),'\u2022');
+         str_output := REGEXP_REPLACE(str_output,UNISTR('\20AC'),'\u20AC');
          str_output := REGEXP_REPLACE(str_output,UNISTR('\2122'),'\u2122');
 
          IF p_quote_strings = 'FALSE'
@@ -4456,6 +4482,7 @@ AS
          clb_output := REGEXP_REPLACE(clb_output,UNISTR('\201D'),'\u201D');
          clb_output := REGEXP_REPLACE(clb_output,UNISTR('\201F'),'\u201F');
          clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2022'),'\u2022');
+         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\20AC'),'\u20AC');
          clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2122'),'\u2122');
 
          IF p_quote_strings = 'FALSE'
@@ -5516,6 +5543,7 @@ AS OBJECT (
    ,CONSTRUCTOR FUNCTION dz_json_element2(
        p_name                IN  VARCHAR2
       ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+      ,p_unique_flag         IN  VARCHAR2 DEFAULT 'FALSE'
    ) RETURN SELF AS RESULT
    
    -----------------------------------------------------------------------------
@@ -5668,15 +5696,79 @@ AS
    CONSTRUCTOR FUNCTION dz_json_element2(
        p_name                IN  VARCHAR2
       ,p_element_string_vry  IN  MDSYS.SDO_STRING2_ARRAY
+      ,p_unique_flag         IN  VARCHAR2 DEFAULT 'FALSE'
    ) RETURN SELF AS RESULT
    AS
+      FUNCTION remove_dups(
+         p_input IN MDSYS.SDO_STRING2_ARRAY
+      ) RETURN MDSYS.SDO_STRING2_ARRAY
+      AS
+         ary_output  MDSYS.SDO_STRING2_ARRAY;
+         boo_hit     BOOLEAN;
+         int_counter PLS_INTEGER;
+         
+      BEGIN
+      
+         IF p_input IS NULL
+         THEN
+            RETURN NULL;
+         
+         END IF;
+         
+         IF p_input.COUNT IN (0,1)
+         THEN
+            RETURN p_input;
+            
+         END IF;
+         
+         ary_output := MDSYS.SDO_STRING2_ARRAY();
+         ary_output.EXTEND();
+         ary_output(1) := p_input(1);
+         
+         int_counter := 2;
+         FOR i IN 2 .. p_input.COUNT
+         LOOP
+            boo_hit := FALSE;
+            <<inner_loop>>
+            FOR j IN 1 .. ary_output.COUNT
+            LOOP
+               IF p_input(i) = ary_output(j)
+               THEN
+                  boo_hit := TRUE;
+                  EXIT inner_loop;
+                  
+               END IF;
+            
+            END LOOP;
+            
+            IF NOT boo_hit
+            THEN
+               ary_output.EXTEND();
+               ary_output(int_counter) := p_input(i);
+               int_counter := int_counter + 1;
+            
+            END IF;
+            
+         END LOOP;
+         
+         RETURN ary_output;
+
+      END remove_dups;
+      
    BEGIN
       IF p_element_string_vry IS NULL
       THEN
          self.element_null := 1;
          
       ELSE
-         self.element_string_vry := p_element_string_vry;
+         IF UPPER(p_unique_flag) = 'TRUE'
+         THEN
+            self.element_string_vry := remove_dups(p_element_string_vry);
+         
+         ELSE
+            self.element_string_vry := p_element_string_vry;
+         
+         END IF;
          
       END IF;
       
@@ -7114,7 +7206,8 @@ AUTHID CURRENT_USER
 AS OBJECT (
     geometry            MDSYS.SDO_GEOMETRY
    ,properties_name     VARCHAR2(4000 Char)
-   ,properties_string   VARCHAR2(4000 Char)
+   ,properties_string   VARCHAR2(32000 Char)
+   ,properties_clob     CLOB
    ,properties_number   NUMBER
    ,properties_date     DATE
    ,properties_complex  CLOB
@@ -7131,6 +7224,13 @@ AS OBJECT (
    ,CONSTRUCTOR FUNCTION dz_json_properties(
        p_name                IN  VARCHAR2
       ,p_properties_string   IN  VARCHAR2
+   ) RETURN SELF AS RESULT
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   ,CONSTRUCTOR FUNCTION dz_json_properties(
+       p_name                IN  VARCHAR2
+      ,p_properties_clob     IN  CLOB
    ) RETURN SELF AS RESULT
     
    -----------------------------------------------------------------------------
@@ -7160,7 +7260,7 @@ AS OBJECT (
        p_name                IN  VARCHAR2
       ,p_properties_element  IN  dz_json_element1_obj
    ) RETURN SELF AS RESULT
-    
+       
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    ,MEMBER FUNCTION isNULL
@@ -7170,7 +7270,7 @@ AS OBJECT (
    -----------------------------------------------------------------------------
    ,MEMBER FUNCTION toJSON(
       p_pretty_print     IN  NUMBER   DEFAULT NULL
-    ) RETURN CLOB
+   ) RETURN CLOB
 
 );
 /
@@ -7208,6 +7308,29 @@ AS
          
       ELSE
          self.properties_string := p_properties_string;
+         
+      END IF;
+      
+      self.properties_name := p_name;
+      
+      RETURN;
+      
+   END dz_json_properties;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   CONSTRUCTOR FUNCTION dz_json_properties(
+       p_name               IN  VARCHAR2
+      ,p_properties_clob    IN  CLOB
+   ) RETURN SELF AS RESULT
+   AS
+   BEGIN
+      IF p_properties_clob IS NULL
+      THEN
+         self.properties_null := 1;
+         
+      ELSE
+         self.properties_clob := p_properties_clob;
          
       END IF;
       
@@ -7322,6 +7445,7 @@ AS
       END IF;
       
       IF  self.properties_string  IS NULL
+      AND self.properties_clob    IS NULL
       AND self.properties_number  IS NULL
       AND self.properties_date    IS NULL
       AND self.properties_complex IS NULL
@@ -7367,7 +7491,19 @@ AS
       IF self.properties_string IS NOT NULL
       THEN
          RETURN dz_json_main.json_format(
-             p_input        => self.properties_string
+            p_input        => self.properties_string
+         );
+         
+      END IF;
+      
+      --------------------------------------------------------------------------
+      -- Step 30
+      -- Clob output
+      --------------------------------------------------------------------------
+      IF self.properties_clob IS NOT NULL
+      THEN
+         RETURN dz_json_main.json_format(
+            p_input        => self.properties_clob
          );
          
       END IF;
@@ -7379,7 +7515,7 @@ AS
       IF self.properties_number IS NOT NULL
       THEN
          RETURN dz_json_main.json_format(
-             p_input        => self.properties_number
+            p_input        => self.properties_number
          );
          
       END IF;
@@ -7391,7 +7527,7 @@ AS
       IF self.properties_date IS NOT NULL
       THEN
          RETURN dz_json_main.json_format(
-             p_input        => self.properties_date
+            p_input        => self.properties_date
          );
          
       END IF;
@@ -8061,10 +8197,10 @@ CREATE OR REPLACE PACKAGE dz_json_test
 AUTHID DEFINER
 AS
 
-   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '213cb0707d9933af249bd4227e3bc37e248a89ca';
+   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '34d20bf89b8269ad25851e24544c58537d74501c';
    C_JENKINS_JOBNM CONSTANT VARCHAR2(255 Char) := 'DZ_JSON';
-   C_JENKINS_BUILD CONSTANT NUMBER := 33;
-   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '33';
+   C_JENKINS_BUILD CONSTANT NUMBER := 37;
+   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '37';
    
    C_PREREQUISITES CONSTANT MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY(
    );
