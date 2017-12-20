@@ -99,11 +99,11 @@ FROM dual;
 }
 ```
 ## RFC 7946 Changes
-The release of [RFC 7946](https://tools.ietf.org/html/rfc7946) in August 2016 removed from GeoJSON the CRS object.  Thus all goemetry in GeoJSON is now by definition WGS84 (as in KML).  Release 2.0 removes the previous ability to transform coordinate systems and generate the CRS object.  All incoming geometries are now projected into and rendered as WGS84.  DZ_JSON will avoid reprojection if the incoming SRIDs are already 4326 or 8307.  
+The release of [RFC 7946](https://tools.ietf.org/html/rfc7946) in August 2016 removed from GeoJSON the CRS object.  Thus all geometry in GeoJSON is now by definition WGS84 (as in KML).  My release 2.0 removes the previous ability to transform coordinate systems and generate the CRS object.  All incoming geometries are now projected into and rendered as WGS84.  DZ_JSON will avoid reprojection if the incoming SRIDs are already 4326 or 8307.  
 
 The new specification calls for geometries to be partitioned at the antimeridian.  This change [is pending](https://github.com/pauldzy/DZ_JSON/issues/2).
 
-The new specification expressly calls for the removal of an LRS measures.  This is complete.
+The new specification expressly calls for the removal of any LRS measures.  This is complete.
 
 ### Feature Collection Type System
 For some time an extensible type system has been provided to allow simple conversion of tabular tables into GeoJSON features or feature collection types.  A new subsystem of JSON elements as types has been added to allow more complex JSON objects as either stand-alone or subobjects under a GeoJSON property.  Additional documentation is required.
