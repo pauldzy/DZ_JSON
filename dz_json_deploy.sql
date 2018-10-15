@@ -7,6 +7,46 @@ WHENEVER OSERROR  EXIT -98;
 SET DEFINE OFF;
 --
 --*************************--
+PROMPT DZ_JSON_CONSTANTS.pks;
+
+CREATE OR REPLACE PACKAGE dz_json_constants
+AUTHID CURRENT_USER
+AS
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   /*
+   Constant: dz_json_constants.c_json_unescaped_slashes
+      Flag to control whether to escape forward slashes.  Certain libraries may
+      or may not require such escaping.
+   */
+   c_json_unescaped_slashes   CONSTANT BOOLEAN := TRUE;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   /*
+   Constant: dz_json_constants.c_json_unescaped_unicode
+      Flag to control escaping of unicode characters into /u format.  Set to TRUE
+      to leave all unicode text as received.  Note this is not recommended for
+      most JSON handling.
+   */
+   c_json_unescaped_unicode   CONSTANT BOOLEAN := FALSE;
+   
+   -----------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
+   /*
+   Constant: dz_json_constants.c_json_escape_all_nonascii
+      Flag to control whether to escape all non-ascii characters into /u format.
+      May be helpful for certain character sets or use cases.
+   */
+   c_json_escape_all_nonascii CONSTANT BOOLEAN := FALSE;
+
+END dz_json_constants;
+/
+
+GRANT EXECUTE ON dz_json_constants TO PUBLIC;
+
+--
+--*************************--
 PROMPT DZ_JSON_UTIL.pks;
 
 CREATE OR REPLACE PACKAGE dz_json_util
@@ -1667,8 +1707,8 @@ AS
    /*
    header: DZ_JSON
      
-   - Build ID: 37
-   - Change Set: 34d20bf89b8269ad25851e24544c58537d74501c
+   - Build ID: 51
+   - Change Set: acc78b726846553f324d43d4951bf24453c71115
    
    Utility for the creation of JSON and GeoJSON from Oracle data types and
    structures.  Support for the deserialization of JSON is not implemented.
@@ -1676,7 +1716,7 @@ AS
    */
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
-   
+
    -----------------------------------------------------------------------------
    -----------------------------------------------------------------------------
    /*
@@ -4293,10 +4333,15 @@ AS
          RETURN 'null';
 
       ELSE
-         str_output := REGEXP_REPLACE(str_output,'\\'         ,'\\\');
-         str_output := REGEXP_REPLACE(str_output,'/'          ,'\/');    
-         str_output := REGEXP_REPLACE(str_output,'"'          ,'\"');
+      
+         IF NOT dz_json_constants.c_json_unescaped_slashes
+         THEN
+            str_output := REGEXP_REPLACE(str_output,'/','\/');
          
+         END IF;
+         
+         str_output := REGEXP_REPLACE(str_output,'\\'         ,'\\\');
+         str_output := REGEXP_REPLACE(str_output,'"'          ,'\"');
          str_output := REGEXP_REPLACE(str_output,CHR(8)       ,'\b');
          str_output := REGEXP_REPLACE(str_output,CHR(9)       ,'\t');
          str_output := REGEXP_REPLACE(str_output,CHR(10)      ,'\n');
@@ -4304,45 +4349,56 @@ AS
          str_output := REGEXP_REPLACE(str_output,CHR(13)      ,'');
          str_output := REGEXP_REPLACE(str_output,CHR(21)      ,'\u0015');
          
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00AE'),'\u00AE');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00B0'),'\u00B0');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00B1'),'\u00B1');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00B2'),'\u00B2');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00B3'),'\u00B3');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00B4'),'\u00B4');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00B5'),'\u00B5');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00B7'),'\u00B7');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00BC'),'\u00BC');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00BD'),'\u00BD');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00C9'),'\u00C9');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00D7'),'\u00D7');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00E0'),'\u00E0');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00E1'),'\u00E1');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00E2'),'\u00E2');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00E3'),'\u00E3');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00E7'),'\u00E7');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00E8'),'\u00E8');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00E9'),'\u00E9');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00EA'),'\u00EA');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00EB'),'\u00EB');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00EC'),'\u00EC');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00ED'),'\u00ED');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00D1'),'\u00D1');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00F3'),'\u00F3');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\00F6'),'\u00F6');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\0161'),'\u0161');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\2013'),'\u2013');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\2014'),'\u2014');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\2015'),'\u2015');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\2018'),'\u2018');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\2019'),'\u2019');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\201B'),'\u201B');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\201C'),'\u201C');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\201D'),'\u201D');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\201F'),'\u201F');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\2022'),'\u2022');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\20AC'),'\u20AC');
-         str_output := REGEXP_REPLACE(str_output,UNISTR('\2122'),'\u2122');
+         IF NOT dz_json_constants.c_json_unescaped_unicode
+         THEN
+            IF dz_json_constants.c_json_escape_all_nonascii
+            THEN
+               str_output := REGEXP_REPLACE(ASCIISTR(str_output),'\\','\\u');
+               
+            ELSE          
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00AE'),'\u00AE');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00B0'),'\u00B0');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00B1'),'\u00B1');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00B2'),'\u00B2');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00B3'),'\u00B3');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00B4'),'\u00B4');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00B5'),'\u00B5');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00B7'),'\u00B7');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00BC'),'\u00BC');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00BD'),'\u00BD');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00C9'),'\u00C9');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00D7'),'\u00D7');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00E0'),'\u00E0');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00E1'),'\u00E1');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00E2'),'\u00E2');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00E3'),'\u00E3');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00E7'),'\u00E7');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00E8'),'\u00E8');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00E9'),'\u00E9');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00EA'),'\u00EA');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00EB'),'\u00EB');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00EC'),'\u00EC');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00ED'),'\u00ED');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00D1'),'\u00D1');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00F3'),'\u00F3');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00F6'),'\u00F6');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\0161'),'\u0161');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\2013'),'\u2013');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\2014'),'\u2014');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\2015'),'\u2015');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\2018'),'\u2018');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\2019'),'\u2019');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\201B'),'\u201B');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\201C'),'\u201C');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\201D'),'\u201D');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\201F'),'\u201F');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\2022'),'\u2022');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\20AC'),'\u20AC');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\2122'),'\u2122');
+               
+            END IF;
+            
+         END IF;
 
          IF p_quote_strings = 'FALSE'
          THEN
@@ -4434,10 +4490,15 @@ AS
          RETURN TO_CLOB('null');
 
       ELSE
-         clb_output := REGEXP_REPLACE(clb_output,'\\'         ,'\\\');
-         clb_output := REGEXP_REPLACE(clb_output,'/'          ,'\/');    
-         clb_output := REGEXP_REPLACE(clb_output,'"'          ,'\"');
+      
+         IF NOT dz_json_constants.c_json_unescaped_slashes
+         THEN
+            clb_output := REGEXP_REPLACE(clb_output,'/'          ,'\/');  
+            
+         END IF;
          
+         clb_output := REGEXP_REPLACE(clb_output,'\\'         ,'\\\');
+         clb_output := REGEXP_REPLACE(clb_output,'"'          ,'\"');
          clb_output := REGEXP_REPLACE(clb_output,CHR(8)       ,'\b');
          clb_output := REGEXP_REPLACE(clb_output,CHR(9)       ,'\t');
          clb_output := REGEXP_REPLACE(clb_output,CHR(10)      ,'\n');
@@ -4445,45 +4506,56 @@ AS
          clb_output := REGEXP_REPLACE(clb_output,CHR(13)      ,'');
          clb_output := REGEXP_REPLACE(clb_output,CHR(21)      ,'\u0015');
          
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00AE'),'\u00AE');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B0'),'\u00B0');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B1'),'\u00B1');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B2'),'\u00B2');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B3'),'\u00B3');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B4'),'\u00B4');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B5'),'\u00B5');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B7'),'\u00B7');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00BC'),'\u00BC');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00BD'),'\u00BD');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00C9'),'\u00C9');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00D7'),'\u00D7');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E0'),'\u00E0');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E1'),'\u00E1');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E2'),'\u00E2');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E3'),'\u00E3');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E7'),'\u00E7');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E8'),'\u00E8');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E9'),'\u00E9');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00EA'),'\u00EA');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00EB'),'\u00EB');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00EC'),'\u00EC');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00ED'),'\u00ED');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00D1'),'\u00D1');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00F3'),'\u00F3');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00F6'),'\u00F6');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\0161'),'\u0161');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2013'),'\u2013');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2014'),'\u2014');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2015'),'\u2015');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2018'),'\u2018');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2019'),'\u2019');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\201B'),'\u201B');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\201C'),'\u201C');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\201D'),'\u201D');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\201F'),'\u201F');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2022'),'\u2022');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\20AC'),'\u20AC');
-         clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2122'),'\u2122');
+         IF NOT dz_json_constants.c_json_unescaped_unicode
+         THEN
+            IF dz_json_constants.c_json_escape_all_nonascii
+            THEN
+               clb_output := REGEXP_REPLACE(ASCIISTR(clb_output),'\\','\\u');
+               
+            ELSE         
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00AE'),'\u00AE');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B0'),'\u00B0');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B1'),'\u00B1');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B2'),'\u00B2');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B3'),'\u00B3');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B4'),'\u00B4');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B5'),'\u00B5');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B7'),'\u00B7');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00BC'),'\u00BC');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00BD'),'\u00BD');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00C9'),'\u00C9');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00D7'),'\u00D7');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E0'),'\u00E0');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E1'),'\u00E1');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E2'),'\u00E2');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E3'),'\u00E3');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E7'),'\u00E7');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E8'),'\u00E8');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E9'),'\u00E9');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00EA'),'\u00EA');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00EB'),'\u00EB');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00EC'),'\u00EC');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00ED'),'\u00ED');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00D1'),'\u00D1');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00F3'),'\u00F3');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00F6'),'\u00F6');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\0161'),'\u0161');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2013'),'\u2013');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2014'),'\u2014');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2015'),'\u2015');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2018'),'\u2018');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2019'),'\u2019');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\201B'),'\u201B');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\201C'),'\u201C');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\201D'),'\u201D');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\201F'),'\u201F');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2022'),'\u2022');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\20AC'),'\u20AC');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2122'),'\u2122');
+               
+            END IF;
+            
+         END IF;
 
          IF p_quote_strings = 'FALSE'
          THEN
@@ -8197,10 +8269,10 @@ CREATE OR REPLACE PACKAGE dz_json_test
 AUTHID DEFINER
 AS
 
-   C_CHANGESET CONSTANT VARCHAR2(255 Char) := '34d20bf89b8269ad25851e24544c58537d74501c';
+   C_CHANGESET CONSTANT VARCHAR2(255 Char) := 'acc78b726846553f324d43d4951bf24453c71115';
    C_JENKINS_JOBNM CONSTANT VARCHAR2(255 Char) := 'DZ_JSON';
-   C_JENKINS_BUILD CONSTANT NUMBER := 37;
-   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '37';
+   C_JENKINS_BUILD CONSTANT NUMBER := 51;
+   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '51';
    
    C_PREREQUISITES CONSTANT MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY(
    );
