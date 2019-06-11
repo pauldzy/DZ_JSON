@@ -1,13 +1,9 @@
---
---*************************--
-PROMPT sqlplus_header.sql;
-
 WHENEVER SQLERROR EXIT -99;
 WHENEVER OSERROR  EXIT -98;
 SET DEFINE OFF;
---
---*************************--
-PROMPT DZ_JSON_CONSTANTS.pks;
+
+--******************************--
+PROMPT Packages/DZ_JSON_CONSTANTS.pks 
 
 CREATE OR REPLACE PACKAGE dz_json_constants
 AUTHID CURRENT_USER
@@ -45,9 +41,8 @@ END dz_json_constants;
 
 GRANT EXECUTE ON dz_json_constants TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_UTIL.pks;
+--******************************--
+PROMPT Packages/DZ_JSON_UTIL.pks 
 
 CREATE OR REPLACE PACKAGE dz_json_util
 AUTHID CURRENT_USER
@@ -225,9 +220,8 @@ END dz_json_util;
 
 GRANT EXECUTE ON dz_json_util TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_UTIL.pkb;
+--******************************--
+PROMPT Packages/DZ_JSON_UTIL.pkb 
 
 CREATE OR REPLACE PACKAGE BODY dz_json_util
 AS
@@ -1695,9 +1689,8 @@ AS
 END dz_json_util;
 /
 
---
---*************************--
-PROMPT DZ_JSON_MAIN.pks;
+--******************************--
+PROMPT Packages/DZ_JSON_MAIN.pks 
 
 CREATE OR REPLACE PACKAGE dz_json_main
 AUTHID CURRENT_USER
@@ -1707,8 +1700,8 @@ AS
    /*
    header: DZ_JSON
      
-   - Build ID: 51
-   - Change Set: acc78b726846553f324d43d4951bf24453c71115
+   - Release: 2.1
+   - Commit Date: Wed Mar 27 13:38:19 2019 -0400
    
    Utility for the creation of JSON and GeoJSON from Oracle data types and
    structures.  Support for the deserialization of JSON is not implemented.
@@ -2047,9 +2040,8 @@ END dz_json_main;
 
 GRANT EXECUTE ON dz_json_main TO public;
 
---
---*************************--
-PROMPT DZ_JSON_MAIN.pkb;
+--******************************--
+PROMPT Packages/DZ_JSON_MAIN.pkb 
 
 CREATE OR REPLACE PACKAGE BODY dz_json_main 
 AS
@@ -4366,8 +4358,18 @@ AS
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00B7'),'\u00B7');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00BC'),'\u00BC');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00BD'),'\u00BD');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00C0'),'\u00C0');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00C1'),'\u00C1');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00C7'),'\u00C7');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00C8'),'\u00C8');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00C9'),'\u00C9');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00CA'),'\u00CA');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00CD'),'\u00CD');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00D1'),'\u00D1');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00D3'),'\u00D3');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00D6'),'\u00D6');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00D7'),'\u00D7');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\00DA'),'\u00DA');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00E0'),'\u00E0');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00E1'),'\u00E1');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00E2'),'\u00E2');
@@ -4379,10 +4381,18 @@ AS
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00EB'),'\u00EB');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00EC'),'\u00EC');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00ED'),'\u00ED');
-               str_output := REGEXP_REPLACE(str_output,UNISTR('\00D1'),'\u00D1');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00F3'),'\u00F3');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\00F6'),'\u00F6');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\0100'),'\u0100');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\0112'),'\u0112');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\012A'),'\u012A');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\0141'),'\u0141');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\014C'),'\u014C');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\0160'),'\u0160');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\0161'),'\u0161');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\016A'),'\u016A');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\02BB'),'\u02BB');
+               str_output := REGEXP_REPLACE(str_output,UNISTR('\0302'),'\u0302');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\2013'),'\u2013');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\2014'),'\u2014');
                str_output := REGEXP_REPLACE(str_output,UNISTR('\2015'),'\u2015');
@@ -4523,8 +4533,18 @@ AS
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00B7'),'\u00B7');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00BC'),'\u00BC');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00BD'),'\u00BD');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00C0'),'\u00C0');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00C1'),'\u00C1');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00C7'),'\u00C7');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00C8'),'\u00C8');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00C9'),'\u00C9');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00CA'),'\u00CA');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00CD'),'\u00CD');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00D1'),'\u00D1');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00D3'),'\u00D3');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00D6'),'\u00D6');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00D7'),'\u00D7');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00DA'),'\u00DA');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E0'),'\u00E0');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E1'),'\u00E1');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00E2'),'\u00E2');
@@ -4536,10 +4556,18 @@ AS
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00EB'),'\u00EB');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00EC'),'\u00EC');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00ED'),'\u00ED');
-               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00D1'),'\u00D1');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00F3'),'\u00F3');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\00F6'),'\u00F6');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\0100'),'\u0100');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\0112'),'\u0112');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\012A'),'\u012A');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\0141'),'\u0141');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\014C'),'\u014C');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\0160'),'\u0160');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\0161'),'\u0161');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\016A'),'\u016A');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\02BB'),'\u02BB');
+               clb_output := REGEXP_REPLACE(clb_output,UNISTR('\0302'),'\u0302');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2013'),'\u2013');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2014'),'\u2014');
                clb_output := REGEXP_REPLACE(clb_output,UNISTR('\2015'),'\u2015');
@@ -4937,9 +4965,8 @@ AS
 END dz_json_main;
 /
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT3.tps;
+--******************************--
+PROMPT Types/DZ_JSON_ELEMENT3.tps 
 
 CREATE OR REPLACE TYPE dz_json_element3 FORCE
 AUTHID CURRENT_USER
@@ -5024,9 +5051,8 @@ AS OBJECT (
 
 GRANT EXECUTE ON dz_json_element3 TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT3.tpb;
+--******************************--
+PROMPT Types/DZ_JSON_ELEMENT3.tpb 
 
 CREATE OR REPLACE TYPE BODY dz_json_element3
 AS
@@ -5408,9 +5434,8 @@ AS
 END;
 /
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT3_VRY.tps;
+--******************************--
+PROMPT Collections/DZ_JSON_ELEMENT3_VRY.tps 
 
 CREATE OR REPLACE TYPE dz_json_element3_vry FORCE
 AS 
@@ -5419,9 +5444,8 @@ VARRAY(1048576) OF dz_json_element3;
 
 GRANT EXECUTE ON dz_json_element3_vry TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT3_OBJ.tps;
+--******************************--
+PROMPT Types/DZ_JSON_ELEMENT3_OBJ.tps 
 
 CREATE OR REPLACE TYPE dz_json_element3_obj FORCE
 AUTHID CURRENT_USER
@@ -5450,9 +5474,8 @@ AS OBJECT (
 
 GRANT EXECUTE ON dz_json_element3_obj TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT3_OBJ.tpb;
+--******************************--
+PROMPT Types/DZ_JSON_ELEMENT3_OBJ.tpb 
 
 CREATE OR REPLACE TYPE BODY dz_json_element3_obj
 AS
@@ -5553,9 +5576,8 @@ AS
 END;
 /
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT3_OBJ_VRY.tps;
+--******************************--
+PROMPT Collections/DZ_JSON_ELEMENT3_OBJ_VRY.tps 
 
 CREATE OR REPLACE TYPE dz_json_element3_obj_vry FORCE
 AS 
@@ -5564,9 +5586,8 @@ VARRAY(1048576) OF dz_json_element3_obj;
 
 GRANT EXECUTE ON dz_json_element3_obj_vry TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT2.tps;
+--******************************--
+PROMPT Types/DZ_JSON_ELEMENT2.tps 
 
 CREATE OR REPLACE TYPE dz_json_element2 FORCE
 AUTHID CURRENT_USER
@@ -5676,9 +5697,8 @@ AS OBJECT (
 
 GRANT EXECUTE ON dz_json_element2 TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT2.tpb;
+--******************************--
+PROMPT Types/DZ_JSON_ELEMENT2.tpb 
 
 CREATE OR REPLACE TYPE BODY dz_json_element2
 AS
@@ -6293,9 +6313,8 @@ AS
 END;
 /
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT2_VRY.tps;
+--******************************--
+PROMPT Collections/DZ_JSON_ELEMENT2_VRY.tps 
 
 CREATE OR REPLACE TYPE dz_json_element2_vry FORCE
 AS 
@@ -6304,9 +6323,8 @@ VARRAY(1048576) OF dz_json_element2;
 
 GRANT EXECUTE ON dz_json_element2_vry TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT2_OBJ.tps;
+--******************************--
+PROMPT Types/DZ_JSON_ELEMENT2_OBJ.tps 
 
 CREATE OR REPLACE TYPE dz_json_element2_obj FORCE
 AUTHID CURRENT_USER
@@ -6335,9 +6353,8 @@ AS OBJECT (
 
 GRANT EXECUTE ON dz_json_element2_obj TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT2_OBJ.tpb;
+--******************************--
+PROMPT Types/DZ_JSON_ELEMENT2_OBJ.tpb 
 
 CREATE OR REPLACE TYPE BODY dz_json_element2_obj
 AS
@@ -6438,9 +6455,8 @@ AS
 END;
 /
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT2_OBJ_VRY.tps;
+--******************************--
+PROMPT Collections/DZ_JSON_ELEMENT2_OBJ_VRY.tps 
 
 CREATE OR REPLACE TYPE dz_json_element2_obj_vry FORCE
 AS 
@@ -6449,9 +6465,8 @@ VARRAY(1048576) OF dz_json_element2_obj;
 
 GRANT EXECUTE ON dz_json_element2_obj_vry TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT1.tps;
+--******************************--
+PROMPT Types/DZ_JSON_ELEMENT1.tps 
 
 CREATE OR REPLACE TYPE dz_json_element1 FORCE
 AUTHID CURRENT_USER
@@ -6561,9 +6576,8 @@ AS OBJECT (
 
 GRANT EXECUTE ON dz_json_element1 TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT1.tpb;
+--******************************--
+PROMPT Types/DZ_JSON_ELEMENT1.tpb 
 
 CREATE OR REPLACE TYPE BODY dz_json_element1
 AS
@@ -7113,9 +7127,8 @@ AS
 END;
 /
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT1_VRY.tps;
+--******************************--
+PROMPT Collections/DZ_JSON_ELEMENT1_VRY.tps 
 
 CREATE OR REPLACE TYPE dz_json_element1_vry FORCE
 AS 
@@ -7124,9 +7137,8 @@ VARRAY(1048576) OF dz_json_element1;
 
 GRANT EXECUTE ON dz_json_element1_vry TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT1_OBJ.tps;
+--******************************--
+PROMPT Types/DZ_JSON_ELEMENT1_OBJ.tps 
 
 CREATE OR REPLACE TYPE dz_json_element1_obj FORCE
 AUTHID CURRENT_USER
@@ -7155,9 +7167,8 @@ AS OBJECT (
 
 GRANT EXECUTE ON dz_json_element1_obj TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT1_OBJ.tpb;
+--******************************--
+PROMPT Types/DZ_JSON_ELEMENT1_OBJ.tpb 
 
 CREATE OR REPLACE TYPE BODY dz_json_element1_obj
 AS
@@ -7258,9 +7269,8 @@ AS
 END;
 /
 
---
---*************************--
-PROMPT DZ_JSON_ELEMENT1_OBJ_VRY.tps;
+--******************************--
+PROMPT Collections/DZ_JSON_ELEMENT1_OBJ_VRY.tps 
 
 CREATE OR REPLACE TYPE dz_json_element1_obj_vry FORCE
 AS 
@@ -7269,9 +7279,8 @@ VARRAY(1048576) OF dz_json_element1_obj;
 
 GRANT EXECUTE ON dz_json_element1_obj_vry TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_PROPERTIES.tps;
+--******************************--
+PROMPT Types/DZ_JSON_PROPERTIES.tps 
 
 CREATE OR REPLACE TYPE dz_json_properties FORCE
 AUTHID CURRENT_USER
@@ -7349,9 +7358,8 @@ AS OBJECT (
 
 GRANT EXECUTE ON dz_json_properties TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_PROPERTIES.tpb;
+--******************************--
+PROMPT Types/DZ_JSON_PROPERTIES.tpb 
 
 CREATE OR REPLACE TYPE BODY dz_json_properties 
 AS
@@ -7637,9 +7645,8 @@ AS
 END;
 /
 
---
---*************************--
-PROMPT DZ_JSON_PROPERTIES_VRY.tps;
+--******************************--
+PROMPT Collections/DZ_JSON_PROPERTIES_VRY.tps 
 
 CREATE OR REPLACE TYPE dz_json_properties_vry FORCE
 AS 
@@ -7648,9 +7655,8 @@ VARRAY(1048576) OF dz_json_properties;
 
 GRANT EXECUTE ON dz_json_properties_vry TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_FEATURE.tps;
+--******************************--
+PROMPT Types/DZ_JSON_FEATURE.tps 
 
 CREATE OR REPLACE TYPE dz_json_feature FORCE
 AUTHID CURRENT_USER
@@ -7695,9 +7701,8 @@ AS OBJECT (
 
 GRANT EXECUTE ON dz_json_feature TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_FEATURE.tpb;
+--******************************--
+PROMPT Types/DZ_JSON_FEATURE.tpb 
 
 CREATE OR REPLACE TYPE BODY dz_json_feature 
 AS
@@ -7949,9 +7954,8 @@ AS
 END;
 /
 
---
---*************************--
-PROMPT DZ_JSON_FEATURE_VRY.tps;
+--******************************--
+PROMPT Collections/DZ_JSON_FEATURE_VRY.tps 
 
 CREATE OR REPLACE TYPE dz_json_feature_vry FORCE
 AS 
@@ -7960,9 +7964,8 @@ VARRAY(1048576) OF dz_json_feature;
 
 GRANT EXECUTE ON dz_json_feature_vry TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_FEATURE_COLLECTION.tps;
+--******************************--
+PROMPT Types/DZ_JSON_FEATURE_COLLECTION.tps 
 
 CREATE OR REPLACE TYPE dz_json_feature_collection FORCE
 AUTHID CURRENT_USER
@@ -8005,9 +8008,8 @@ AS OBJECT (
 
 GRANT EXECUTE ON dz_json_feature_collection TO PUBLIC;
 
---
---*************************--
-PROMPT DZ_JSON_FEATURE_COLLECTION.tpb;
+--******************************--
+PROMPT Types/DZ_JSON_FEATURE_COLLECTION.tpb 
 
 CREATE OR REPLACE TYPE BODY dz_json_feature_collection 
 AS
@@ -8261,18 +8263,17 @@ AS
 END;
 /
 
---
---*************************--
-PROMPT DZ_JSON_TEST.pks;
+--******************************--
+PROMPT Packages/DZ_JSON_TEST.pks 
 
 CREATE OR REPLACE PACKAGE dz_json_test
 AUTHID DEFINER
 AS
 
-   C_CHANGESET CONSTANT VARCHAR2(255 Char) := 'acc78b726846553f324d43d4951bf24453c71115';
-   C_JENKINS_JOBNM CONSTANT VARCHAR2(255 Char) := 'DZ_JSON';
-   C_JENKINS_BUILD CONSTANT NUMBER := 51;
-   C_JENKINS_BLDID CONSTANT VARCHAR2(255 Char) := '51';
+   C_GITRELEASE    CONSTANT VARCHAR2(255 Char) := '2.1';
+   C_GITCOMMIT     CONSTANT VARCHAR2(255 Char) := '31799d193e96b8dde272763da2e916a563073163';
+   C_GITCOMMITDATE CONSTANT VARCHAR2(255 Char) := 'Wed Mar 27 13:38:19 2019 -0400';
+   C_GITCOMMITAUTH CONSTANT VARCHAR2(255 Char) := 'Paul Dziemiela';
    
    C_PREREQUISITES CONSTANT MDSYS.SDO_STRING2_ARRAY := MDSYS.SDO_STRING2_ARRAY(
    );
@@ -8302,9 +8303,8 @@ END dz_json_test;
 
 GRANT EXECUTE ON dz_json_test TO public;
 
---
---*************************--
-PROMPT DZ_JSON_TEST.pkb;
+--******************************--
+PROMPT Packages/DZ_JSON_TEST.pkb 
 
 CREATE OR REPLACE PACKAGE BODY dz_json_test
 AS
@@ -8347,10 +8347,12 @@ AS
    RETURN VARCHAR2
    AS
    BEGIN
-      RETURN '{"CHANGESET":' || C_CHANGESET || ','
-      || '"JOBN":"' || C_JENKINS_JOBNM || '",'   
-      || '"BUILD":' || C_JENKINS_BUILD || ','
-      || '"BUILDID":"' || C_JENKINS_BLDID || '"}';
+      RETURN '{'
+      || ' "GITRELEASE":"'    || C_GITRELEASE    || '"'
+      || ',"GITCOMMIT":"'     || C_GITCOMMIT     || '"'
+      || ',"GITCOMMITDATE":"' || C_GITCOMMITDATE || '"'
+      || ',"GITCOMMITAUTH":"' || C_GITCOMMITAUTH || '"'
+      || '}';
       
    END version;
    
@@ -8915,10 +8917,6 @@ AS
 END dz_json_test;
 /
 
---
---*************************--
-PROMPT sqlplus_footer.sql;
-
 SHOW ERROR;
 
 DECLARE
@@ -8952,3 +8950,5 @@ END;
 /
 
 EXIT;
+SET DEFINE OFF;
+

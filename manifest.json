@@ -1,0 +1,161 @@
+{
+    "constants": [
+       {
+          "key":   "JOBNAME"
+         ,"value": "DZ_JSON"
+       }
+      ,{
+          "key": "GITRELEASE"
+         ,"cmd": "git describe --abbrev=0 --tags"
+       }
+      ,{
+          "key": "GITCOMMIT"
+         ,"cmd": "git rev-parse master"
+       }
+      ,{
+          "key": "GITCOMMITDATE"
+         ,"cmd": "git show -s --format=%cd"
+       }
+      ,{
+          "key": "GITCOMMITAUTH"
+         ,"cmd": "git show -s --format=%an"
+       }
+    ]
+   ,"tasks": [
+       {
+          "id": "concatenate"
+         ,"output": "dz_json_deploy.sql"
+         ,"includes": [
+             "%%SQLHEADER%%"
+            ,"Packages/DZ_JSON_CONSTANTS.pks"
+            ,"Packages/DZ_JSON_UTIL.pks"
+            ,"Packages/DZ_JSON_UTIL.pkb"
+            ,"Packages/DZ_JSON_MAIN.pks"
+            ,"Packages/DZ_JSON_MAIN.pkb"                                
+            ,"Types/DZ_JSON_ELEMENT3.tps" 
+            ,"Types/DZ_JSON_ELEMENT3.tpb" 
+            ,"Collections/DZ_JSON_ELEMENT3_VRY.tps" 
+            ,"Types/DZ_JSON_ELEMENT3_OBJ.tps" 
+            ,"Types/DZ_JSON_ELEMENT3_OBJ.tpb" 
+            ,"Collections/DZ_JSON_ELEMENT3_OBJ_VRY.tps"                               
+            ,"Types/DZ_JSON_ELEMENT2.tps" 
+            ,"Types/DZ_JSON_ELEMENT2.tpb" 
+            ,"Collections/DZ_JSON_ELEMENT2_VRY.tps" 
+            ,"Types/DZ_JSON_ELEMENT2_OBJ.tps" 
+            ,"Types/DZ_JSON_ELEMENT2_OBJ.tpb"
+            ,"Collections/DZ_JSON_ELEMENT2_OBJ_VRY.tps"                               
+            ,"Types/DZ_JSON_ELEMENT1.tps" 
+            ,"Types/DZ_JSON_ELEMENT1.tpb" 
+            ,"Collections/DZ_JSON_ELEMENT1_VRY.tps" 
+            ,"Types/DZ_JSON_ELEMENT1_OBJ.tps" 
+            ,"Types/DZ_JSON_ELEMENT1_OBJ.tpb"
+            ,"Collections/DZ_JSON_ELEMENT1_OBJ_VRY.tps" 
+            ,"Types/DZ_JSON_PROPERTIES.tps"
+            ,"Types/DZ_JSON_PROPERTIES.tpb"
+            ,"Collections/DZ_JSON_PROPERTIES_VRY.tps"
+            ,"Types/DZ_JSON_FEATURE.tps"
+            ,"Types/DZ_JSON_FEATURE.tpb"
+            ,"Collections/DZ_JSON_FEATURE_VRY.tps"
+            ,"Types/DZ_JSON_FEATURE_COLLECTION.tps"
+            ,"Types/DZ_JSON_FEATURE_COLLECTION.tpb"            
+            ,"Packages/DZ_JSON_TEST.pks"
+            ,"Packages/DZ_JSON_TEST.pkb"
+            ,"%%SQLFOOTER%%"
+          ]
+         ,"separator": "--******************************--\nPROMPT %%FILENAME%% \n\n"
+         ,"components": [
+             {
+                "identifier": "SQLHEADER"
+               ,"content": [
+                   "WHENEVER SQLERROR EXIT -99;"
+                  ,"WHENEVER OSERROR  EXIT -98;"
+                  ,"SET DEFINE OFF;"
+                  ,""
+                ]
+             }
+            ,{
+                "identifier": "SQLFOOTER"
+               ,"content": [
+                   "SHOW ERROR;"
+                  ,""
+                  ,"DECLARE"
+                  ,"   l_num_errors PLS_INTEGER;"
+                  ,""
+                  ,"BEGIN"
+                  ,""
+                  ,"   SELECT"
+                  ,"   COUNT(*)"
+                  ,"   INTO l_num_errors"
+                  ,"   FROM"
+                  ,"   user_errors a"
+                  ,"   WHERE"
+                  ,"   a.name LIKE '%JOBNAME%%';"
+                  ,""
+                  ,"   IF l_num_errors <> 0"
+                  ,"   THEN"
+                  ,"      RAISE_APPLICATION_ERROR(-20001,'COMPILE ERROR');"
+                  ,""
+                  ,"   END IF;"
+                  ,""
+                  ,"   l_num_errors := %JOBNAME%_TEST.inmemory_test();"
+                  ,""
+                  ,"   IF l_num_errors <> 0"
+                  ,"   THEN"
+                  ,"      RAISE_APPLICATION_ERROR(-20001,'INMEMORY TEST ERROR');"
+                  ,""
+                  ,"   END IF;"
+                  ,""
+                  ,"END;"
+                  ,"/"
+                  ,""
+                  ,"EXIT;"
+                  ,"SET DEFINE OFF;"
+                  ,""
+                ]
+             }
+          ]
+         ,"configurations": [
+            {
+                "id": 1
+               ,"file": "Packages/DZ_JSON_TEST.pks"
+               ,"replacements": [
+                   {
+                      "string": "C_GITRELEASE    CONSTANT VARCHAR2(255 Char) := 'NULL';"
+                     ,"value":  "C_GITRELEASE    CONSTANT VARCHAR2(255 Char) := '%GITRELEASE%';"
+                   }
+                  ,{
+                      "string": "C_GITCOMMIT     CONSTANT VARCHAR2(255 Char) := 'NULL';"
+                     ,"value":  "C_GITCOMMIT     CONSTANT VARCHAR2(255 Char) := '%GITCOMMIT%';"
+                   }
+                  ,{
+                      "string": "C_GITCOMMITDATE CONSTANT VARCHAR2(255 Char) := 'NULL';"
+                     ,"value":  "C_GITCOMMITDATE CONSTANT VARCHAR2(255 Char) := '%GITCOMMITDATE%';"
+                   }
+                  ,{
+                      "string": "C_GITCOMMITAUTH CONSTANT VARCHAR2(255 Char) := 'NULL';"
+                     ,"value":  "C_GITCOMMITAUTH CONSTANT VARCHAR2(255 Char) := '%GITCOMMITAUTH%';"
+                   }
+                ]
+            }
+          ]
+       }
+      ,{
+          "id": "naturaldocs"
+         ,"input":  "dz_json_deploy.sql"
+         ,"output_dir": "stage1"
+       }
+      ,{
+          "id": "wkhtmltopdf"
+         ,"input_dir": "stage1"
+         ,"output": "dz_json_deploy.pdf"
+       }
+      ,{
+          "id": "artifacts"
+         ,"targets": [
+             "dz_json_deploy.sql"
+            ,"dz_json_deploy.pdf"
+         ]
+       }
+   ]
+}
+
