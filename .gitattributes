@@ -1,0 +1,14 @@
+* text=auto
+
+*.pks linguist-language=PLSQL
+*.pkb linguist-language=PLSQL
+*.tps linguist-language=PLSQL
+*.tpb linguist-language=PLSQL
+
+*.pks  text
+*.pkb  text
+*.tps  text
+*.tpb  text
+*.sql  text
+*.json text
+
